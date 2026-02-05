@@ -33,18 +33,27 @@
 		 * @returns {object} { blocked: boolean, message: string, feature: string, upgradeUrl: string }
 		 */
 		check: function( step, formData ) {
-			var isPremium = window.wsscdWizardConfig && window.wsscdWizardConfig.is_premium;
+			// Use both sources: inline script (wsscdWizardConfig) and localized wizard data (wsscdWizardData.features).
+			// Wizard data is set when wizard scripts load and is the authoritative source for feature flags.
+			var config = window.wsscdWizardConfig || {};
+			var features = window.wsscdWizardData && window.wsscdWizardData.features;
+			var isPremium = config.is_premium || ( features && features.isPremium );
 
 			// If premium, allow all features
 			if ( isPremium ) {
 				return { blocked: false };
 			}
 
-			var upgradeUrl = ( window.wsscdWizardConfig && window.wsscdWizardConfig.upgrade_url ) || '#';
+			var upgradeUrl = config.upgrade_url || ( features && features.upgradeUrl ) || '#';
 
 			if ( 'discounts' === step && formData.discountType ) {
 				var proDiscountTypes = [ 'tiered', 'bogo', 'spend_threshold' ];
 				if ( -1 !== proDiscountTypes.indexOf( formData.discountType ) ) {
+					// Respect per-feature flags from wizard data (canUseTiered, canUseBogo, canUseSpendThreshold).
+					var canUseKey = 'canUse' + ( formData.discountType === 'spend_threshold' ? 'SpendThreshold' : formData.discountType.charAt( 0 ).toUpperCase() + formData.discountType.slice( 1 ) );
+					if ( features && features[canUseKey] ) {
+						return { blocked: false };
+					}
 					this.showModal( {
 						featureType: 'discount_type',
 						featureName: this.getDiscountTypeLabel( formData.discountType ),
@@ -110,7 +119,10 @@
 			$modal.fadeIn( 200 );
 			$( 'body' ).addClass( 'wsscd-modal-open' );
 
-			$modal.find( '.wsscd-modal-upgrade' ).focus();
+			var $upgradeBtn = $modal.find( '.wsscd-modal-upgrade' );
+			if ( $upgradeBtn.length && $upgradeBtn[0].focus ) {
+				$upgradeBtn[0].focus();
+			}
 
 			// Handle upgrade button
 			$modal.find( '.wsscd-modal-upgrade' ).off( 'click' ).on( 'click', function() {
@@ -134,19 +146,16 @@
 				// Close modal
 				self.closeModal();
 
-				// Scroll to and highlight the relevant selector
+				// Scroll to and highlight the relevant selector (native scroll avoids scroll-linked warning)
 				if ( 'discount_type' === options.featureType ) {
 					var $selector = $( '[name="discount_type"]' );
-					if ( $selector.length ) {
-						$( 'html, body' ).animate( {
-							scrollTop: $selector.closest( '.wsscd-wizard-card' ).offset().top - 100
-						}, 400, function() {
-							// Highlight the selector briefly
-							$selector.closest( '.wsscd-discount-type-selector' ).addClass( 'wsscd-highlight-field' );
-							setTimeout( function() {
-								$selector.closest( '.wsscd-discount-type-selector' ).removeClass( 'wsscd-highlight-field' );
-							}, 2000 );
-						} );
+					var card = $selector.length ? $selector.closest( '.wsscd-wizard-card' )[0] : null;
+					if ( card && card.scrollIntoView ) {
+						card.scrollIntoView( { behavior: 'smooth', block: 'center' } );
+						$selector.closest( '.wsscd-discount-type-selector' ).addClass( 'wsscd-highlight-field' );
+						setTimeout( function() {
+							$selector.closest( '.wsscd-discount-type-selector' ).removeClass( 'wsscd-highlight-field' );
+						}, 2000 );
 					}
 				}
 			} );

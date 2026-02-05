@@ -142,8 +142,16 @@ class WSSCD_Occurrence_Cache {
 
 		// Validate required fields - must have start_date
 		if ( empty( $schedule['start_date'] ) ) {
-			$this->logger->error( 'Cannot calculate occurrences: missing start_date', array( 'parent_id' => $parent_id ) );
+			$this->logger->error( 'Cannot calculate occurrences: missing start_date', array( 'schedule' => $schedule ) );
 			return array();
+		}
+
+		// Use campaign schedule timezone so date/time are interpreted as the merchant intended.
+		$tz_string = isset( $schedule['timezone'] ) && is_string( $schedule['timezone'] ) && '' !== trim( $schedule['timezone'] ) ? $schedule['timezone'] : wp_timezone_string();
+		try {
+			$tz = new DateTimeZone( $tz_string );
+		} catch ( Exception $e ) {
+			$tz = new DateTimeZone( wp_timezone_string() );
 		}
 
 		// Calculate campaign duration - support both end_date and duration_seconds
@@ -152,11 +160,11 @@ class WSSCD_Occurrence_Cache {
 		$duration   = null;
 
 		try {
-			$start = new DateTime( $schedule['start_date'] . ' ' . $start_time, new DateTimeZone( wp_timezone_string() ) );
+			$start = new DateTime( $schedule['start_date'] . ' ' . $start_time, $tz );
 
 			// Option 1: Explicit end_date (most common)
 			if ( ! empty( $schedule['end_date'] ) ) {
-				$end      = new DateTime( $schedule['end_date'] . ' ' . $end_time, new DateTimeZone( wp_timezone_string() ) );
+				$end      = new DateTime( $schedule['end_date'] . ' ' . $end_time, $tz );
 				$duration = $start->diff( $end );
 			} elseif ( ! empty( $schedule['duration_seconds'] ) && $schedule['duration_seconds'] > 0 ) {
 				// Option 2: Duration-based (timeline presets like "Flash Sale - 6 Hours", "3 Day Weekend")
@@ -167,19 +175,17 @@ class WSSCD_Occurrence_Cache {
 				// Option 3: Invalid - no way to determine duration
 				$this->logger->error(
 					'Cannot calculate occurrences: no end_date or duration_seconds',
-					array(
-						'parent_id' => $parent_id,
-						'schedule'  => $schedule,
-					)
+					array( 'schedule' => $schedule )
 				);
 				return array();
 			}
 
 			// Start from end of current campaign (occurrences begin after parent ends)
 			$next_start  = clone $end;
-			$cache_limit = new DateTime( '+' . $this->cache_horizon_days . ' days', new DateTimeZone( wp_timezone_string() ) );
+			$cache_limit = new DateTime( '+' . $this->cache_horizon_days . ' days', $tz );
 
-			// Generate occurrences
+			// Generate occurrences (store in UTC so get_due_occurrences and instance starts_at/ends_at are correct)
+			$utc = new DateTimeZone( 'UTC' );
 			$count = 0;
 			while ( $next_start < $cache_limit && $count < 100 ) { // Safety limit.
 				// Calculate next occurrence start
@@ -197,8 +203,8 @@ class WSSCD_Occurrence_Cache {
 						return array(); // Invalid pattern.
 				}
 
-				// Check end conditions
-				if ( ! $this->should_create_occurrence( $recurring, $next_start, $count + 1 ) ) {
+				// Check end conditions (recurrence_end_date interpreted in schedule timezone)
+				if ( ! $this->should_create_occurrence( $recurring, $schedule, $next_start, $count + 1 ) ) {
 					break;
 				}
 
@@ -206,9 +212,15 @@ class WSSCD_Occurrence_Cache {
 				$next_end = clone $next_start;
 				$next_end->add( $duration );
 
+				// Convert to UTC for storage and comparison with server time
+				$next_start_utc = clone $next_start;
+				$next_start_utc->setTimezone( $utc );
+				$next_end_utc = clone $next_end;
+				$next_end_utc->setTimezone( $utc );
+
 				$occurrences[] = array(
-					'start' => $next_start->format( 'Y-m-d H:i:s' ),
-					'end'   => $next_end->format( 'Y-m-d H:i:s' ),
+					'start' => $next_start_utc->format( 'Y-m-d H:i:s' ),
+					'end'   => $next_end_utc->format( 'Y-m-d H:i:s' ),
 				);
 
 				++$count;
@@ -229,11 +241,12 @@ class WSSCD_Occurrence_Cache {
 	 *
 	 * @since  1.1.0
 	 * @param  array    $recurring Recurring settings.
-	 * @param  DateTime $date      Occurrence date.
+	 * @param  array    $schedule  Schedule (for timezone).
+	 * @param  DateTime $date      Occurrence date (in schedule timezone).
 	 * @param  int      $count     Current occurrence count.
 	 * @return bool                Whether to create occurrence.
 	 */
-	private function should_create_occurrence( array $recurring, DateTime $date, int $count ): bool {
+	private function should_create_occurrence( array $recurring, array $schedule, DateTime $date, int $count ): bool {
 		$end_type = $recurring['recurrence_end_type'] ?? 'never';
 
 		if ( 'never' === $end_type ) {
@@ -247,7 +260,10 @@ class WSSCD_Occurrence_Cache {
 
 		if ( 'on' === $end_type && ! empty( $recurring['recurrence_end_date'] ) ) {
 			try {
-				$end_date = new DateTime( $recurring['recurrence_end_date'], new DateTimeZone( wp_timezone_string() ) );
+				$tz_string = isset( $schedule['timezone'] ) && is_string( $schedule['timezone'] ) && '' !== trim( $schedule['timezone'] ) ? $schedule['timezone'] : wp_timezone_string();
+				$tz        = new DateTimeZone( $tz_string );
+				// End of recurrence is end of that day in campaign timezone
+				$end_date = new DateTime( $recurring['recurrence_end_date'] . ' 23:59:59', $tz );
 				return $date <= $end_date;
 			} catch ( Exception $e ) {
 				return false;

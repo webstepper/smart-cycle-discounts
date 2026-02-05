@@ -802,7 +802,7 @@ ob_start();
             </div>
 
             <!-- Badge Configuration (shown when enabled) -->
-            <div class="wsscd-badge-config-wrapper wsscd-badge-setting" data-depends-on="badge_enabled">
+            <div class="wsscd-badge-config-wrapper wsscd-badge-setting<?php echo $badge_enabled ? '' : ' wsscd-hidden'; ?>" data-depends-on="badge_enabled" data-currency-symbol="<?php echo esc_attr( $currency_symbol ); ?>">
 
                 <!-- Left Column: Controls -->
                 <div class="wsscd-badge-config-controls">

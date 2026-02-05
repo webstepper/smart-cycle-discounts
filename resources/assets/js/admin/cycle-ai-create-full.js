@@ -1,9 +1,9 @@
 /**
  * Cycle AI Create Full Campaign (Campaigns list page)
  *
- * Handles "Create with AI" button: shows progress modal with loader and
- * fading conversational phrases, calls AJAX, then redirects to the wizard
- * review step with session prefilled.
+ * Handles "Create with AI" button: opens modal with campaign type cards
+ * (Recommended + Other), then shows progress (loader + phrases), calls AJAX
+ * with userBrief from selected card, and redirects to the wizard review step.
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/js/admin
@@ -13,14 +13,15 @@
 ( function( $ ) {
 	'use strict';
 
-	var PHRASE_INTERVAL_MS = 3500;
-	var CROSSFADE_DURATION_MS = 520;
+	var PHRASE_INTERVAL_MS = 3200;
+	var CROSSFADE_DURATION_MS = 600;
 
 	function showModal( $modal ) {
 		if ( ! $modal.length ) {
 			return;
 		}
-		$modal.addClass( 'wsscd-modal--visible' ).attr( 'aria-hidden', 'false' );
+		$modal.removeClass( 'wsscd-cycle-ai-create-modal--progress' ).attr( 'aria-hidden', 'false' );
+		$modal.addClass( 'wsscd-modal--visible' );
 		$( 'body' ).addClass( 'wsscd-modal-open' );
 	}
 
@@ -32,7 +33,24 @@
 		$( 'body' ).removeClass( 'wsscd-modal-open' );
 	}
 
+	function showBriefStep( $modal ) {
+		$modal.removeClass( 'wsscd-cycle-ai-create-modal--progress' );
+		$modal.find( '#wsscd-cycle-ai-create-step-progress' ).attr( 'aria-hidden', 'true' );
+		$modal.find( '#wsscd-cycle-ai-create-step-brief' ).attr( 'aria-hidden', 'false' );
+	}
+
+	function showProgressStep( $modal ) {
+		$modal.addClass( 'wsscd-cycle-ai-create-modal--progress' );
+		$modal.find( '#wsscd-cycle-ai-create-step-brief' ).attr( 'aria-hidden', 'true' );
+		$modal.find( '#wsscd-cycle-ai-create-step-progress' ).attr( 'aria-hidden', 'false' );
+	}
+
 	function startPhraseRotation( $wrap, intervalMs ) {
+		var $phrase = $wrap.find( '.wsscd-cycle-ai-create-modal__phrase' );
+		if ( ! $phrase.length ) {
+			return null;
+		}
+
 		var phrases = [];
 		try {
 			var raw = $wrap.attr( 'data-phrases' );
@@ -42,13 +60,18 @@
 		} catch ( err ) {
 			phrases = [];
 		}
+		if ( ! Array.isArray( phrases ) ) {
+			phrases = [];
+		}
+		if ( phrases.length === 0 ) {
+			var firstText = $phrase.text();
+			if ( firstText && firstText.trim() ) {
+				phrases = [ firstText.trim() ];
+			}
+		}
 		if ( phrases.length === 0 ) {
 			return null;
 		}
-		var $slotA = $wrap.find( '.wsscd-cycle-ai-create-modal__phrase--a' );
-		var $slotB = $wrap.find( '.wsscd-cycle-ai-create-modal__phrase--b' );
-		var index = 0;
-		var useA = true;
 
 		function normalizePhrase( str ) {
 			if ( typeof str !== 'string' ) {
@@ -57,38 +80,49 @@
 			return str.replace( /\s*[\r\n]+\s*/g, ' ' ).replace( /\s{2,}/g, ' ' ).trim();
 		}
 
+		$phrase.text( normalizePhrase( phrases[0] ) ).removeClass( 'is-leaving' );
+
+		if ( phrases.length === 1 ) {
+			return null;
+		}
+
+		var index = 0;
+
 		function next() {
 			index = ( index + 1 ) % phrases.length;
-			var $leaving = useA ? $slotA : $slotB;
-			var $entering = useA ? $slotB : $slotA;
-
-			/* Ensure entering slot is in hidden state (no leftover classes). */
-			$entering.removeClass( 'is-visible is-leaving' ).text( normalizePhrase( phrases[index] ) );
-			$leaving.addClass( 'is-leaving' );
-
-			/* Let the browser paint the new text at opacity 0, then transition to visible. */
-			requestAnimationFrame( function() {
-				requestAnimationFrame( function() {
-					$entering.addClass( 'is-visible' );
-				} );
-			} );
-
+			var nextText = normalizePhrase( phrases[index] );
+			$phrase.addClass( 'is-leaving' );
 			setTimeout( function() {
-				$leaving.removeClass( 'is-visible is-leaving' );
-				useA = ! useA;
+				$phrase.text( nextText ).removeClass( 'is-leaving' );
 			}, CROSSFADE_DURATION_MS );
 		}
 
-		$slotA.text( normalizePhrase( phrases[0] ) ).addClass( 'is-visible' );
 		return setInterval( next, intervalMs );
 	}
 
 	$( function() {
 		var $modal = $( '#wsscd-cycle-ai-create-modal' );
+		var $createBtn = $modal.find( '#wsscd-cycle-ai-create-start' );
 		var phraseTimer = null;
 		var cancelled = false;
-		var currentBtn = null;
-		var currentOriginalText = '';
+		var listBtn = null;
+		var listBtnOriginalText = '';
+
+		function getSelectedBrief() {
+			var $card = $modal.find( '.wsscd-cycle-ai-create-modal__card.is-selected' );
+			if ( ! $card.length ) {
+				return '';
+			}
+			var raw = $card.data( 'campaignBrief' );
+			return ( typeof raw === 'string' && raw ) ? raw.trim() : '';
+		}
+
+		function setSelectedCard( $card ) {
+			$modal.find( '.wsscd-cycle-ai-create-modal__card' ).removeClass( 'is-selected' ).attr( 'aria-pressed', 'false' );
+			if ( $card.length ) {
+				$card.addClass( 'is-selected' ).attr( 'aria-pressed', 'true' );
+			}
+		}
 
 		function resetState() {
 			if ( phraseTimer ) {
@@ -96,23 +130,27 @@
 				phraseTimer = null;
 			}
 			cancelled = false;
-			if ( currentBtn && currentBtn.length ) {
-				currentBtn.prop( 'disabled', false ).text( currentOriginalText );
-				currentBtn = null;
+			showBriefStep( $modal );
+			setSelectedCard( $modal.find( '.wsscd-cycle-ai-create-modal__card--no-preference' ) );
+			$createBtn.prop( 'disabled', false );
+			if ( listBtn && listBtn.length ) {
+				listBtn.prop( 'disabled', false ).text( listBtnOriginalText );
+				listBtn = null;
 			}
 		}
 
-		$( document ).on( 'click', '#wsscd-cycle-ai-create-cancel', function() {
+		function closeModal() {
 			cancelled = true;
 			if ( phraseTimer ) {
 				clearInterval( phraseTimer );
 				phraseTimer = null;
 			}
 			hideModal( $modal );
-			if ( currentBtn && currentBtn.length ) {
-				currentBtn.prop( 'disabled', false ).text( currentOriginalText );
-				currentBtn = null;
-			}
+			resetState();
+		}
+
+		$( document ).on( 'click', '#wsscd-cycle-ai-create-cancel, #wsscd-cycle-ai-create-cancel-brief', function() {
+			closeModal();
 		} );
 
 		$( document ).on( 'click', '.wsscd-create-with-ai-btn', function( e ) {
@@ -132,17 +170,44 @@
 				return;
 			}
 
+			listBtn = $btn;
+			listBtnOriginalText = $btn.text();
+			$btn.prop( 'disabled', true );
+			showModal( $modal );
+			setSelectedCard( $modal.find( '.wsscd-cycle-ai-create-modal__card--no-preference' ) );
+		} );
+
+		$( document ).on( 'click', '.wsscd-cycle-ai-create-modal__card', function( e ) {
+			e.preventDefault();
+			setSelectedCard( $( this ) );
+		} );
+
+		$( document ).on( 'click', '#wsscd-cycle-ai-create-start', function( e ) {
+			e.preventDefault();
+			if ( $createBtn.prop( 'disabled' ) ) {
+				return;
+			}
+
+			var userBrief = getSelectedBrief();
+			var payload = {};
+			if ( userBrief ) {
+				payload.userBrief = userBrief;
+			}
+
 			var $phraseWrap = $modal.find( '.wsscd-cycle-ai-create-modal__phrase-wrap' );
 			cancelled = false;
-			currentBtn = $btn;
-			currentOriginalText = $btn.text();
+			$createBtn.prop( 'disabled', true );
+			showProgressStep( $modal );
+			// Defer phrase rotation until after the progress step is painted so the phrase is visible.
+			requestAnimationFrame( function() {
+				requestAnimationFrame( function() {
+					if ( ! cancelled && $phraseWrap.length ) {
+						phraseTimer = startPhraseRotation( $phraseWrap, PHRASE_INTERVAL_MS );
+					}
+				} );
+			} );
 
-			$btn.prop( 'disabled', true ).text( $btn.data( 'loading-text' ) || 'Creating campaign…' );
-
-			showModal( $modal );
-			phraseTimer = startPhraseRotation( $phraseWrap, PHRASE_INTERVAL_MS );
-
-			WSSCD.Ajax.post( 'wsscd_cycle_ai_create_full_campaign', {}, { timeout: 90000 } )
+			WSSCD.Ajax.post( 'wsscd_cycle_ai_create_full_campaign', payload, { timeout: 90000 } )
 				.then( function( response ) {
 					if ( cancelled ) {
 						return;

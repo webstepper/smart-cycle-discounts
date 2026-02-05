@@ -556,21 +556,6 @@ class WSSCD_Service_Definitions {
 				},
 			),
 
-			'campaign_edit_controller'     => array(
-				'class'        => 'WSSCD_Campaign_Edit_Controller',
-				'singleton'    => false,
-				'dependencies' => array( 'cache_manager', 'campaign_manager', 'capability_manager', 'logger', 'campaign_view_renderer' ),
-				'factory'      => function ( $container ) {
-					return new WSSCD_Campaign_Edit_Controller(
-						$container->get( 'cache_manager' ),
-						$container->get( 'campaign_manager' ),
-						$container->get( 'capability_manager' ),
-						$container->get( 'logger' ),
-						$container->get( 'campaign_view_renderer' )
-					);
-				},
-			),
-
 			'campaign_wizard_controller'   => array(
 				'class'        => 'WSSCD_Campaign_Wizard_Controller',
 				'singleton'    => false,

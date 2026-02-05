@@ -179,12 +179,12 @@ class SCD_Campaigns_Page {
     public function render() {
         $action = isset($_GET['action']) ? $_GET['action'] : 'list';
         
-        match($action) {
-            'list' => $this->get_list_controller()->handle(),
-            'edit' => $this->get_edit_controller()->handle(),
-            'wizard' => $this->get_wizard_controller()->handle(),
-            default => $this->show_list(),
-        };
+        switch ($action) {
+            case 'edit': /* redirects to wizard with intent=edit */ break;
+            case 'new': /* redirects to wizard with intent=new */ break;
+            case 'wizard': $this->get_wizard_controller()->handle(); break;
+            default: $this->get_list_controller()->handle(); break;
+        }
     }
     
     private function get_list_controller() {

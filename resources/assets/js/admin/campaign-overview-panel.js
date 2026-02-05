@@ -282,36 +282,10 @@
 		},
 
 		extractErrorMessage: function( response ) {
-			if ( ! response ) {
-				return 'Failed to load campaign data';
+			if ( window.WSSCD && window.WSSCD.Shared && typeof window.WSSCD.Shared.extractErrorMessage === 'function' ) {
+				return window.WSSCD.Shared.extractErrorMessage( response, 'Failed to load campaign data' );
 			}
-
-			// Try response.message first
-			if ( response.message && 'string' === typeof response.message ) {
-				return response.message;
-			}
-
-			// Try response.data.message
-			if ( response.data && response.data.message && 'string' === typeof response.data.message ) {
-				return response.data.message;
-			}
-
-			// Try response.error object (API sends { code, message } after camelCase)
-			if ( response.error && typeof response.error === 'object' && response.error.message && 'string' === typeof response.error.message ) {
-				return response.error.message;
-			}
-
-			// Try response.error array
-			if ( response.error && Array.isArray( response.error ) && response.error.length > 0 ) {
-				return response.error[0];
-			}
-
-			// Try response.error string
-			if ( response.error && 'string' === typeof response.error ) {
-				return response.error;
-			}
-
-			return 'Failed to load campaign data';
+			return response && ( response.message || ( response.data && response.data.message ) ) || 'Failed to load campaign data';
 		},
 
 		renderCampaign: function( data ) {
@@ -330,7 +304,12 @@
 			// Render sections
 			if ( data.sections ) {
 				this.renderSections( data.sections );
-			} else {
+			}
+
+			// Show or hide Recurring Schedule section based on campaign (one-time vs recurring)
+			var recurringSection = document.querySelector( '.wsscd-section-recurring-schedule' );
+			if ( recurringSection ) {
+				recurringSection.style.display = ( data.recurring_enabled || data.recurringEnabled ) ? '' : 'none';
 			}
 
 			// Show sections container
@@ -338,11 +317,12 @@
 		},
 
 	renderSections: function( sections ) {
+		// Keys must match server response (snake_case)
 		var sectionMap = {
 			basic: '#wsscd-section-basic',
 			health: '#wsscd-section-health',
 			schedule: '#wsscd-section-schedule',
-			recurringSchedule: '#wsscd-section-recurring-schedule',
+			recurring_schedule: '#wsscd-section-recurring-schedule',
 			products: '#wsscd-section-products',
 			discounts: '#wsscd-section-discounts',
 			performance: '#wsscd-section-performance'

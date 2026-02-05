@@ -13,11 +13,11 @@
    ======================================================================== */
 
 .wsscd-badge-enable-section {
-	margin-bottom: 24px;
+	margin-bottom: var(--wsscd-spacing-xl);
 	padding: var(--wsscd-padding-section);
 	background: var(--wsscd-color-surface);
 	border-radius: var(--wsscd-radius-lg);
-	border: 1px solid var(--wsscd-color-border-light);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
 }
 
 .wsscd-badge-enable-row {
@@ -28,7 +28,7 @@
 
 .wsscd-badge-enable-row .wsscd-toggle {
 	flex-shrink: 0;
-	margin-top: 2px;
+	margin-top: var(--wsscd-spacing-xxs);
 }
 
 .wsscd-badge-enable-text {
@@ -57,14 +57,12 @@
 	align-items: center;
 	gap: var(--wsscd-gap-normal);
 	margin-top: var(--wsscd-spacing-base);
-	padding: var(--wsscd-padding-medium) 16px;
+	padding: var(--wsscd-padding-medium) var(--wsscd-spacing-base);
 	background: var(--wsscd-color-warning-light);
-	border-left: 4px solid var(--wsscd-color-warning);
+	border-left: var(--wsscd-border-width-accent) solid var(--wsscd-color-warning);
 	border-radius: var(--wsscd-radius-md);
-	animation: wsscd-slide-down 0.3s ease;
+	animation: wsscd-slide-down var(--wsscd-transition-slow) ease;
 }
-
-/* Note: @keyframes wsscd-slide-down defined in shared/_utilities.css */
 
 .wsscd-badge-context-warning .wsscd-icon {
 	color: var(--wsscd-color-warning-text);
@@ -87,14 +85,8 @@
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 	gap: var(--wsscd-gap-xl);
-	margin-top: 24px;
+	margin-top: var(--wsscd-spacing-xl);
 	transition: opacity var(--wsscd-transition-slow) ease;
-}
-
-.wsscd-badge-config-wrapper[style*="display: none"] {
-	opacity: 0;
-	max-height: 0;
-	overflow: hidden;
 }
 
 /* ========================================================================
@@ -110,7 +102,7 @@
 .wsscd-badge-config-section {
 	padding: var(--wsscd-padding-section);
 	background: var(--wsscd-color-white);
-	border: 1px solid var(--wsscd-color-border-light);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
 	border-radius: var(--wsscd-radius-lg);
 	box-shadow: var(--wsscd-shadow-sm);
 }
@@ -119,7 +111,7 @@
 	display: flex;
 	align-items: center;
 	gap: var(--wsscd-gap-tight);
-	margin: 0 0 16px 0;
+	margin: 0 0 var(--wsscd-spacing-base) 0;
 	padding: 0;
 	font-size: var(--wsscd-font-size-medium);
 	font-weight: var(--wsscd-font-weight-semibold);
@@ -177,9 +169,9 @@
 	flex-direction: column;
 	align-items: center;
 	gap: var(--wsscd-gap-tight);
-	padding: var(--wsscd-padding-large) 12px;
+	padding: var(--wsscd-padding-large) var(--wsscd-spacing-md);
 	background: var(--wsscd-color-surface);
-	border: 2px solid var(--wsscd-color-border-light);
+	border: var(--wsscd-border-width-thick) solid var(--wsscd-color-border-light);
 	border-radius: var(--wsscd-radius-lg);
 	cursor: pointer;
 	transition: all var(--wsscd-transition-base) ease;
@@ -213,18 +205,18 @@
 
 .wsscd-position-visual {
 	position: relative;
-	width: 60px;
-	height: 60px;
+	width: var(--wsscd-nav-height);
+	height: var(--wsscd-nav-height);
 	background: var(--wsscd-color-white);
-	border: 2px solid var(--wsscd-color-border-light);
+	border: var(--wsscd-border-width-thick) solid var(--wsscd-color-border-light);
 	border-radius: var(--wsscd-radius-md);
 	transition: all var(--wsscd-transition-base) ease;
 }
 
 .wsscd-position-indicator {
 	position: absolute;
-	width: 16px;
-	height: 16px;
+	width: var(--wsscd-checkbox-size);
+	height: var(--wsscd-checkbox-size);
 	background: var(--wsscd-color-text-light);
 	border-radius: var(--wsscd-radius-sm);
 	transition: all var(--wsscd-transition-base) ease;
@@ -232,23 +224,23 @@
 
 /* Position indicators based on value */
 .wsscd-position-box input[value="top-left"] + .wsscd-position-visual .wsscd-position-indicator {
-	top: 6px;
-	left: 6px;
+	top: var(--wsscd-spacing-sm);
+	left: var(--wsscd-spacing-sm);
 }
 
 .wsscd-position-box input[value="top-right"] + .wsscd-position-visual .wsscd-position-indicator {
-	top: 6px;
-	right: 6px;
+	top: var(--wsscd-spacing-sm);
+	right: var(--wsscd-spacing-sm);
 }
 
 .wsscd-position-box input[value="bottom-left"] + .wsscd-position-visual .wsscd-position-indicator {
-	bottom: 6px;
-	left: 6px;
+	bottom: var(--wsscd-spacing-sm);
+	left: var(--wsscd-spacing-sm);
 }
 
 .wsscd-position-box input[value="bottom-right"] + .wsscd-position-visual .wsscd-position-indicator {
-	bottom: 6px;
-	right: 6px;
+	bottom: var(--wsscd-spacing-sm);
+	right: var(--wsscd-spacing-sm);
 }
 
 .wsscd-position-name {
@@ -292,7 +284,7 @@
 
 .wsscd-badge-config-preview {
 	position: sticky;
-	top: 32px;
+	top: var(--wsscd-wp-admin-bar-height-desktop);
 	height: fit-content;
 }
 
@@ -303,7 +295,7 @@
 .wsscd-badge-preview-wrapper {
 	padding: var(--wsscd-padding-section);
 	background: var(--wsscd-color-white);
-	border: 1px solid var(--wsscd-color-border-light);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
 	border-radius: var(--wsscd-radius-lg);
 	box-shadow: var(--wsscd-shadow-sm);
 }
@@ -311,8 +303,8 @@
 .wsscd-badge-preview-mock-product {
 	position: relative;
 	width: 100%;
-	max-width: 280px;
-	margin: 0 auto 16px;
+	max-width: calc(var(--wsscd-spacing-xxxl) * 7);
+	margin: 0 auto var(--wsscd-spacing-base);
 	border-radius: var(--wsscd-radius-lg);
 	overflow: hidden;
 	box-shadow: var(--wsscd-shadow-md);
@@ -334,7 +326,7 @@
 	width: 100%;
 	aspect-ratio: 1;
 	background: linear-gradient(135deg, var(--wsscd-color-surface) 0%, var(--wsscd-color-border-light) 100%);
-	border: 2px dashed var(--wsscd-color-border);
+	border: var(--wsscd-border-width-thick) dashed var(--wsscd-color-border);
 	border-radius: var(--wsscd-radius-lg);
 	color: var(--wsscd-color-text-muted);
 }
@@ -364,25 +356,25 @@
 	z-index: var(--wsscd-z-dropdown);
 }
 
-/* Badge positions */
+/* Badge positions (fallback when JS inline styles not yet applied) */
 .wsscd-badge-preview-badge[data-position="top-left"] {
-	top: 12px;
-	left: 12px;
+	top: var(--wsscd-spacing-md);
+	left: var(--wsscd-spacing-md);
 }
 
 .wsscd-badge-preview-badge[data-position="top-right"] {
-	top: 12px;
-	right: 12px;
+	top: var(--wsscd-spacing-md);
+	right: var(--wsscd-spacing-md);
 }
 
 .wsscd-badge-preview-badge[data-position="bottom-left"] {
-	bottom: 12px;
-	left: 12px;
+	bottom: var(--wsscd-spacing-md);
+	left: var(--wsscd-spacing-md);
 }
 
 .wsscd-badge-preview-badge[data-position="bottom-right"] {
-	bottom: 12px;
-	right: 12px;
+	bottom: var(--wsscd-spacing-md);
+	right: var(--wsscd-spacing-md);
 }
 
 .wsscd-preview-note {
@@ -434,8 +426,8 @@
    ======================================================================== */
 
 .wsscd-position-box:focus-within {
-	outline: 2px solid var(--wsscd-color-accent);
-	outline-offset: 2px;
+	outline: var(--wsscd-border-width-thick) solid var(--wsscd-color-accent);
+	outline-offset: var(--wsscd-border-width-thick);
 }
 
 .wsscd-color-picker:focus {
@@ -447,11 +439,11 @@
 @media (prefers-contrast: high) {
 	.wsscd-badge-config-section,
 	.wsscd-badge-preview-wrapper {
-		border-width: 2px;
+		border-width: var(--wsscd-border-width-thick);
 	}
 
 	.wsscd-position-box {
-		border-width: 3px;
+		border-width: var(--wsscd-border-width-accent-thin);
 	}
 }
 
@@ -478,6 +470,6 @@
 
 	.wsscd-badge-preview-badge {
 		box-shadow: none;
-		border: 1px solid var(--wsscd-color-black);
+		border: var(--wsscd-border-width) solid var(--wsscd-color-black);
 	}
 }

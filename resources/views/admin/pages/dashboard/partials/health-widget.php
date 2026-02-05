@@ -222,7 +222,7 @@ $health_class = 'wsscd-health-' . $current_config['class'];
 							<?php
 							WSSCD_Button_Helper::link(
 								__( 'Fix Now', 'smart-cycle-discounts' ),
-								admin_url( 'admin.php?page=wsscd-campaigns&action=edit&id=' . $issue['campaign_id'] ),
+								admin_url( 'admin.php?page=wsscd-campaigns&action=wizard&intent=edit&id=' . $issue['campaign_id'] ),
 								array( 'size' => 'small' )
 							);
 							?>
@@ -249,7 +249,7 @@ $health_class = 'wsscd-health-' . $current_config['class'];
 							<?php
 							WSSCD_Button_Helper::link(
 								__( 'Review', 'smart-cycle-discounts' ),
-								admin_url( 'admin.php?page=wsscd-campaigns&action=edit&id=' . $warning['campaign_id'] ),
+								admin_url( 'admin.php?page=wsscd-campaigns&action=wizard&intent=edit&id=' . $warning['campaign_id'] ),
 								array( 'size' => 'small' )
 							);
 							?>

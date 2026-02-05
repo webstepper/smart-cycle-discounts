@@ -545,41 +545,179 @@ class WSSCD_Campaign_List_Controller extends WSSCD_Abstract_Campaign_Controller 
 	}
 
 	/**
-	 * Render Cycle AI "Create with AI" progress modal (loader + fading sentences).
+	 * Get all campaign types for the "Create with AI" modal (slug => label for AI brief).
+	 *
+	 * @since 1.0.0
+	 * @return array Associative array slug => label.
+	 */
+	private function get_cycle_ai_campaign_types(): array {
+		$types = array(
+			'valentines_day' => __( 'Valentine\'s Day', 'smart-cycle-discounts' ),
+			'clearance'      => __( 'Clearance / Overstock', 'smart-cycle-discounts' ),
+			'new_arrivals'   => __( 'New Arrivals', 'smart-cycle-discounts' ),
+			'best_sellers'   => __( 'Best Sellers', 'smart-cycle-discounts' ),
+			'flash_sale'     => __( 'Flash Sale', 'smart-cycle-discounts' ),
+			'seasonal'       => __( 'Seasonal', 'smart-cycle-discounts' ),
+			'holiday'        => __( 'Holiday', 'smart-cycle-discounts' ),
+			'back_to_school' => __( 'Back to School', 'smart-cycle-discounts' ),
+			'black_friday'   => __( 'Black Friday', 'smart-cycle-discounts' ),
+			'summer_sale'    => __( 'Summer Sale', 'smart-cycle-discounts' ),
+			'winter_sale'    => __( 'Winter Sale', 'smart-cycle-discounts' ),
+			'spring_sale'    => __( 'Spring Sale', 'smart-cycle-discounts' ),
+			'autumn_sale'    => __( 'Autumn Sale', 'smart-cycle-discounts' ),
+		);
+		return apply_filters( 'wsscd_cycle_ai_campaign_types', $types );
+	}
+
+	/**
+	 * Get recommended campaign type slugs based on current date (no store queries).
+	 *
+	 * @since 1.0.0
+	 * @return array List of slugs to show in "Recommended" section.
+	 */
+	private function get_recommended_campaign_type_slugs(): array {
+		$month = (int) ( function_exists( 'wp_date' ) ? wp_date( 'n', time() ) : gmdate( 'n' ) );
+		$recommended = array();
+
+		// Date-based: seasonal and holidays.
+		if ( 2 === $month ) {
+			$recommended[] = 'valentines_day';
+		}
+		if ( 9 === $month ) {
+			$recommended[] = 'back_to_school';
+		}
+		if ( 11 === $month ) {
+			$recommended[] = 'black_friday';
+		}
+		if ( 12 === $month ) {
+			$recommended[] = 'holiday';
+		}
+		if ( $month >= 6 && $month <= 8 ) {
+			$recommended[] = 'summer_sale';
+		}
+		if ( 12 === $month || $month <= 2 ) {
+			$recommended[] = 'winter_sale';
+		}
+		if ( $month >= 3 && $month <= 5 ) {
+			$recommended[] = 'spring_sale';
+		}
+		if ( $month >= 9 && $month <= 11 ) {
+			$recommended[] = 'autumn_sale';
+		}
+
+		// Always relevant.
+		$always = array( 'flash_sale', 'clearance', 'new_arrivals' );
+		foreach ( $always as $slug ) {
+			if ( ! in_array( $slug, $recommended, true ) ) {
+				$recommended[] = $slug;
+			}
+		}
+
+		$recommended = array_slice( array_unique( $recommended ), 0, 6 );
+		return apply_filters( 'wsscd_cycle_ai_recommended_campaign_types', $recommended );
+	}
+
+	/**
+	 * Render Cycle AI "Create with AI" progress modal (campaign type cards, then loader).
 	 *
 	 * @since 1.0.0
 	 * @return void
 	 */
 	private function render_cycle_ai_create_modal(): void {
+		// Progress messages match backend flow: prepare → store context → campaigns → AI → build session. User-friendly wording.
 		$phrases = array(
-			__( 'Checking your store…', 'smart-cycle-discounts' ),
-			__( 'Looking at your products and categories…', 'smart-cycle-discounts' ),
-			__( 'Checking existing campaigns…', 'smart-cycle-discounts' ),
-			__( 'Creating a campaign idea for you…', 'smart-cycle-discounts' ),
+			__( 'Preparing…', 'smart-cycle-discounts' ),
+			__( 'Reading your store and products…', 'smart-cycle-discounts' ),
+			__( 'Checking best sellers and new arrivals…', 'smart-cycle-discounts' ),
+			__( 'Reviewing your existing campaigns…', 'smart-cycle-discounts' ),
+			__( 'Generating your campaign idea…', 'smart-cycle-discounts' ),
+			__( 'Setting up your campaign…', 'smart-cycle-discounts' ),
 			__( 'Almost there…', 'smart-cycle-discounts' ),
 		);
-		// Normalize phrases to single line (translations may contain newlines from .po format).
 		$phrases = array_map( array( $this, 'normalize_cycle_ai_phrase' ), $phrases );
+
+		$all_types   = $this->get_cycle_ai_campaign_types();
+		$recommended = $this->get_recommended_campaign_type_slugs();
+		$other       = array_diff( array_keys( $all_types ), $recommended );
 		?>
-		<!-- Cycle AI Create Full - Progress Modal -->
+		<!-- Cycle AI Create Full - Modal: campaign type cards (Recommended + Other), then progress -->
 		<div id="wsscd-cycle-ai-create-modal" class="wsscd-modal wsscd-modal--cycle-ai-create" aria-hidden="true" aria-labelledby="wsscd-cycle-ai-create-modal-title">
 			<div class="wsscd-modal__overlay"></div>
 			<div class="wsscd-modal__container wsscd-cycle-ai-create-modal__container">
-				<div class="wsscd-cycle-ai-create-modal__content">
-					<div class="wsscd-cycle-ai-create-modal__loader" aria-hidden="true">
-						<span class="wsscd-spinner wsscd-cycle-ai-create-modal__spinner"></span>
+				<!-- Step 1: Campaign type cards -->
+				<div class="wsscd-cycle-ai-create-modal__step wsscd-cycle-ai-create-modal__step-brief" id="wsscd-cycle-ai-create-step-brief" aria-hidden="false">
+					<div class="wsscd-cycle-ai-create-modal__content wsscd-cycle-ai-create-modal__content--cards">
+						<h3 id="wsscd-cycle-ai-create-modal-title" class="wsscd-cycle-ai-create-modal__title">
+							<?php echo esc_html__( 'Create with AI', 'smart-cycle-discounts' ); ?>
+						</h3>
+						<p class="wsscd-cycle-ai-create-modal__subtitle">
+							<?php echo esc_html__( 'Choose a campaign type, or let AI suggest based on your store.', 'smart-cycle-discounts' ); ?>
+						</p>
+
+						<?php if ( ! empty( $recommended ) ) : ?>
+						<section class="wsscd-cycle-ai-create-modal__section" aria-labelledby="wsscd-cycle-ai-create-recommended-heading">
+							<h4 id="wsscd-cycle-ai-create-recommended-heading" class="wsscd-cycle-ai-create-modal__section-title">
+								<?php echo esc_html__( 'Recommended', 'smart-cycle-discounts' ); ?>
+							</h4>
+							<div class="wsscd-cycle-ai-create-modal__cards" role="group" aria-label="<?php echo esc_attr__( 'Recommended campaign types', 'smart-cycle-discounts' ); ?>">
+								<button type="button" class="wsscd-cycle-ai-create-modal__card wsscd-cycle-ai-create-modal__card--no-preference is-selected" data-campaign-type="" data-campaign-brief="" aria-pressed="true">
+									<span class="wsscd-cycle-ai-create-modal__card-label"><?php echo esc_html__( 'No preference', 'smart-cycle-discounts' ); ?></span>
+								</button>
+								<?php foreach ( $recommended as $slug ) : ?>
+									<?php if ( isset( $all_types[ $slug ] ) ) : ?>
+								<button type="button" class="wsscd-cycle-ai-create-modal__card" data-campaign-type="<?php echo esc_attr( $slug ); ?>" data-campaign-brief="<?php echo esc_attr( $all_types[ $slug ] ); ?>" aria-pressed="false">
+									<span class="wsscd-cycle-ai-create-modal__card-label"><?php echo esc_html( $all_types[ $slug ] ); ?></span>
+								</button>
+									<?php endif; ?>
+								<?php endforeach; ?>
+							</div>
+						</section>
+						<?php endif; ?>
+
+						<?php if ( ! empty( $other ) ) : ?>
+						<section class="wsscd-cycle-ai-create-modal__section" aria-labelledby="wsscd-cycle-ai-create-other-heading">
+							<h4 id="wsscd-cycle-ai-create-other-heading" class="wsscd-cycle-ai-create-modal__section-title">
+								<?php echo esc_html__( 'Other campaigns', 'smart-cycle-discounts' ); ?>
+							</h4>
+							<div class="wsscd-cycle-ai-create-modal__cards" role="group" aria-label="<?php echo esc_attr__( 'Other campaign types', 'smart-cycle-discounts' ); ?>">
+								<?php foreach ( $other as $slug ) : ?>
+									<?php if ( isset( $all_types[ $slug ] ) ) : ?>
+								<button type="button" class="wsscd-cycle-ai-create-modal__card" data-campaign-type="<?php echo esc_attr( $slug ); ?>" data-campaign-brief="<?php echo esc_attr( $all_types[ $slug ] ); ?>" aria-pressed="false">
+									<span class="wsscd-cycle-ai-create-modal__card-label"><?php echo esc_html( $all_types[ $slug ] ); ?></span>
+								</button>
+									<?php endif; ?>
+								<?php endforeach; ?>
+							</div>
+						</section>
+						<?php endif; ?>
+
+						<div class="wsscd-cycle-ai-create-modal__footer">
+							<button type="button" class="wsscd-btn wsscd-btn--secondary wsscd-cycle-ai-create-modal__cancel" id="wsscd-cycle-ai-create-cancel-brief">
+								<?php echo esc_html__( 'Cancel', 'smart-cycle-discounts' ); ?>
+							</button>
+							<button type="button" class="wsscd-btn wsscd-btn--primary wsscd-cycle-ai-create-modal__create" id="wsscd-cycle-ai-create-start">
+								<?php echo esc_html__( 'Create', 'smart-cycle-discounts' ); ?>
+							</button>
+						</div>
 					</div>
-					<h3 id="wsscd-cycle-ai-create-modal-title" class="wsscd-cycle-ai-create-modal__title">
-						<?php echo esc_html__( 'Creating your campaign with AI', 'smart-cycle-discounts' ); ?>
-					</h3>
-					<div class="wsscd-cycle-ai-create-modal__phrase-wrap" data-phrases="<?php echo esc_attr( wp_json_encode( $phrases ) ); ?>">
-						<p class="wsscd-cycle-ai-create-modal__phrase wsscd-cycle-ai-create-modal__phrase--a" aria-live="polite"><?php echo esc_html( $phrases[0] ); ?></p>
-						<p class="wsscd-cycle-ai-create-modal__phrase wsscd-cycle-ai-create-modal__phrase--b" aria-live="polite"></p>
-					</div>
-					<div class="wsscd-cycle-ai-create-modal__footer">
-						<button type="button" class="wsscd-btn wsscd-btn--secondary wsscd-cycle-ai-create-modal__cancel" id="wsscd-cycle-ai-create-cancel">
-							<?php echo esc_html__( 'Cancel', 'smart-cycle-discounts' ); ?>
-						</button>
+				</div>
+				<!-- Step 2: Progress (loader + phrases) -->
+				<div class="wsscd-cycle-ai-create-modal__step wsscd-cycle-ai-create-modal__step-progress" id="wsscd-cycle-ai-create-step-progress" aria-hidden="true">
+					<div class="wsscd-cycle-ai-create-modal__content">
+						<div class="wsscd-cycle-ai-create-modal__loader" aria-hidden="true">
+							<span class="wsscd-spinner wsscd-cycle-ai-create-modal__spinner"></span>
+						</div>
+						<h3 class="wsscd-cycle-ai-create-modal__title wsscd-cycle-ai-create-modal__title--progress">
+							<?php echo esc_html__( 'Creating your campaign with AI', 'smart-cycle-discounts' ); ?>
+						</h3>
+						<div class="wsscd-cycle-ai-create-modal__phrase-wrap" data-phrases="<?php echo esc_attr( wp_json_encode( $phrases ) ); ?>">
+							<p class="wsscd-cycle-ai-create-modal__phrase" aria-live="polite"><?php echo esc_html( $phrases[0] ); ?></p>
+						</div>
+						<div class="wsscd-cycle-ai-create-modal__footer">
+							<button type="button" class="wsscd-btn wsscd-btn--secondary wsscd-cycle-ai-create-modal__cancel" id="wsscd-cycle-ai-create-cancel">
+								<?php echo esc_html__( 'Cancel', 'smart-cycle-discounts' ); ?>
+							</button>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -807,25 +945,26 @@ class WSSCD_Campaign_List_Controller extends WSSCD_Abstract_Campaign_Controller 
 			'title'          => esc_html__( 'Unfinished Campaign Found', 'smart-cycle-discounts' ),
 			'content'        => $content,
 			'icon'           => 'info',
-			'classes'        => array( 'wsscd-modal__icon--info' ),
+			// Modal-level variant for info styling.
+			'classes'        => array( 'wsscd-modal--info' ),
 			'buttons'        => array(
 				array(
 					'id'     => 'wsscd-continue-draft',
 					'text'   => __( 'Resume Campaign', 'smart-cycle-discounts' ),
-					'class'  => 'wsscd-button wsscd-button-primary',
+					'class'  => 'wsscd-button wsscd-button--primary',
 					'action' => 'continue',
 					'icon'   => 'edit',
 				),
 				array(
 					'id'     => 'wsscd-discard-and-new',
 					'text'   => __( 'Start New Campaign', 'smart-cycle-discounts' ),
-					'class'  => 'wsscd-button wsscd-button-danger wsscd-discard-btn',
+					'class'  => 'wsscd-button wsscd-button--ghost-danger wsscd-discard-btn',
 					'action' => 'discard-new',
 					'icon'   => 'trash',
 				),
 				array(
 					'text'   => __( 'Go Back', 'smart-cycle-discounts' ),
-					'class'  => 'wsscd-button wsscd-button-secondary wsscd-modal-cancel',
+					'class'  => 'wsscd-button wsscd-button--secondary wsscd-modal-cancel',
 					'action' => 'close',
 					'icon'   => 'no',
 				),

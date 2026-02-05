@@ -70,7 +70,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 									</a>
 								</span>
 								<span class="edit">
-									| <a href="<?php echo esc_url( admin_url( 'admin.php?page=wsscd-campaigns&action=edit&id=' . $campaign->get_id() ) ); ?>">
+									| <a href="<?php echo esc_url( admin_url( 'admin.php?page=wsscd-campaigns&action=wizard&intent=edit&id=' . $campaign->get_id() ) ); ?>">
 										<?php esc_html_e( 'Edit', 'smart-cycle-discounts' ); ?>
 									</a>
 								</span>

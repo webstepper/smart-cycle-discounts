@@ -121,6 +121,13 @@ class WSSCD_Cycle_AI_Create_Full_Handler extends WSSCD_Abstract_Ajax_Handler {
 		$existing_campaigns_text = $this->build_existing_campaigns_context();
 		$context_overrides       = array( 'existing_campaigns' => $existing_campaigns_text );
 
+		$user_brief = isset( $request['user_brief'] ) && is_string( $request['user_brief'] )
+			? sanitize_text_field( wp_unslash( $request['user_brief'] ) )
+			: '';
+		if ( '' !== $user_brief ) {
+			$context_overrides['user_brief'] = substr( $user_brief, 0, 500 );
+		}
+
 		$steps = $this->cycle_ai_service->get_full_campaign_suggestion( $context_overrides );
 
 		if ( is_wp_error( $steps ) ) {
@@ -132,6 +139,9 @@ class WSSCD_Cycle_AI_Create_Full_Handler extends WSSCD_Abstract_Ajax_Handler {
 
 		$this->state_service->set( 'prefilled_from_cycle_ai', true );
 		$this->state_service->set( 'is_fresh', true );
+		if ( '' !== $user_brief ) {
+			$this->state_service->set( 'cycle_ai_user_brief', substr( $user_brief, 0, 500 ) );
+		}
 
 		foreach ( array( 'basic', 'products', 'discounts', 'schedule' ) as $step_name ) {
 			if ( isset( $steps[ $step_name ] ) && is_array( $steps[ $step_name ] ) ) {

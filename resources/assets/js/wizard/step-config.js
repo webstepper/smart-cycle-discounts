@@ -70,8 +70,7 @@
 				'schedule-api',
 				'schedule-ui',
 				'schedule-config',
-				'wsscd-timeline-visualizer',
-				'wsscd-date-time-picker'
+				'wsscd-timeline-visualizer'
 			]
 		},
 

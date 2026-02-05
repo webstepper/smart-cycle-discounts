@@ -41,14 +41,6 @@ class WSSCD_Campaigns_Page {
 	private $list_controller = null;
 
 	/**
-	 * Edit controller.
-	 *
-	 * @since    1.0.0
-	 * @var      WSSCD_Campaign_Edit_Controller|null
-	 */
-	private $edit_controller = null;
-
-	/**
 	 * Wizard controller.
 	 *
 	 * @since    1.0.0
@@ -85,19 +77,6 @@ class WSSCD_Campaigns_Page {
 			$this->list_controller = $this->container->get( 'campaign_list_controller' );
 		}
 		return $this->list_controller;
-	}
-
-	/**
-	 * Get edit controller.
-	 *
-	 * @since    1.0.0
-	 * @return   WSSCD_Campaign_Edit_Controller
-	 */
-	private function get_edit_controller() {
-		if ( ! $this->edit_controller ) {
-			$this->edit_controller = $this->container->get( 'campaign_edit_controller' );
-		}
-		return $this->edit_controller;
 	}
 
 	/**
@@ -165,15 +144,15 @@ class WSSCD_Campaigns_Page {
 				$campaign_id = isset( $_GET['id'] ) ? absint( $_GET['id'] ) : 0;
 				// phpcs:enable WordPress.Security.NonceVerification.Recommended
 				if ( $campaign_id ) {
-					$this->get_edit_controller()->handle( $campaign_id );
-				} else {
-					$this->redirect_to_list();
+					wp_safe_redirect( admin_url( 'admin.php?page=wsscd-campaigns&action=wizard&intent=edit&id=' . $campaign_id ) );
+					exit;
 				}
+				$this->redirect_to_list();
 				break;
 
 			case 'new':
-				$this->get_edit_controller()->handle( 0 );
-				break;
+				wp_safe_redirect( admin_url( 'admin.php?page=wsscd-campaigns&action=wizard&intent=new' ) );
+				exit;
 
 			case 'wizard':
 				if ( defined( 'WSSCD_DEBUG' ) && WSSCD_DEBUG ) {
@@ -241,16 +220,6 @@ class WSSCD_Campaigns_Page {
 				$this->get_list_controller()->handle();
 				break;
 		}
-	}
-
-	/**
-	 * Handle save action.
-	 *
-	 * @since    1.0.0
-	 * @return   void
-	 */
-	public function handle_save() {
-		$this->get_edit_controller()->handle_save();
 	}
 
 	/**

@@ -350,10 +350,14 @@ class WSSCD_Wizard_Validation {
 				try {
 					// CRITICAL: Use wp_timezone() for consistent timezone handling across the plugin
 					$timezone = wp_timezone();
-					$end_date = new DateTime( $validated['schedule']['end_date'], $timezone );
 					$now      = new DateTime( 'now', $timezone );
+					// Build end datetime from end_date + end_time so "today" with 23:59 is valid (not past at midnight)
+					$end_time_str = ( isset( $validated['schedule']['end_time'] ) && '' !== trim( $validated['schedule']['end_time'] ) )
+						? $validated['schedule']['end_time']
+						: '23:59';
+					$end_datetime = new DateTime( $validated['schedule']['end_date'] . ' ' . $end_time_str, $timezone );
 
-					if ( $end_date < $now ) {
+					if ( $end_datetime < $now ) {
 						$errors->add( 'end_date_past', __( 'End date must be in the future', 'smart-cycle-discounts' ) );
 					}
 				} catch ( Exception $e ) {

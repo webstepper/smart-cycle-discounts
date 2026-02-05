@@ -552,7 +552,11 @@ class WSSCD_Cycle_AI_Service {
 	}
 
 	/**
-	 * Build rich context for full-campaign AI suggestion (store, categories, products, optional existing campaigns).
+	 * Build rich context for full-campaign AI suggestion (store, time, events, categories, products, performance, stock).
+	 *
+	 * Includes current date/time, weekday, upcoming events, categories with counts, sample products,
+	 * best sellers, slow movers, new arrivals, and stock summary so the AI can suggest campaigns
+	 * that are relevant to the current moment and store data.
 	 *
 	 * @since 1.0.0
 	 *
@@ -570,11 +574,19 @@ class WSSCD_Cycle_AI_Service {
 		$lines[] = 'Currency: ' . $currency;
 		$lines[] = '';
 
-		$categories = $this->get_categories_with_ids();
+		// Current moment and upcoming events (so AI can suggest time-relevant campaigns).
+		$smart = $this->build_smart_context();
+		if ( '' !== $smart ) {
+			$lines[] = $smart;
+			$lines[] = '';
+		}
+
+		$categories = $this->get_categories_with_ids_and_counts();
 		if ( ! empty( $categories ) ) {
 			$lines[] = 'Product categories (use these exact names in category_names):';
 			foreach ( $categories as $cat ) {
-				$lines[] = '- ID ' . $cat['id'] . ': ' . $cat['name'];
+				$count = isset( $cat['count'] ) ? ' (' . (int) $cat['count'] . ' products)' : '';
+				$lines[] = '- ID ' . $cat['id'] . ': ' . $cat['name'] . $count;
 			}
 			$lines[] = '';
 		}
@@ -590,7 +602,8 @@ class WSSCD_Cycle_AI_Service {
 
 		$base = array(
 			'existing_campaigns' => '',
-			'extra'              => '',
+			'user_brief'        => '',
+			'extra'             => '',
 		);
 		$overrides = array_merge( $base, $context_overrides );
 		$filtered  = apply_filters( 'wsscd_cycle_ai_full_campaign_context', $overrides );
@@ -601,14 +614,460 @@ class WSSCD_Cycle_AI_Service {
 			$lines[] = '';
 		}
 
+		if ( ! empty( $filtered['user_brief'] ) ) {
+			$lines[] = 'Campaign type requested: ' . $filtered['user_brief'];
+			$lines[] = 'Use the requested type as the main theme for the campaign name (e.g. "Flash Sale", "Clearance", "New Arrivals"). Only add seasonal or event wording (e.g. Valentine\'s, Black Friday) when it clearly fits this type.';
+			$lines[] = '';
+		}
+
 		if ( ! empty( $filtered['extra'] ) ) {
 			$lines[] = $filtered['extra'];
 			$lines[] = '';
 		}
 
-		$lines[] = 'Generate exactly ONE full campaign as JSON (see schema below). Use only category names from the list above.';
+		$lines[] = 'Generate exactly ONE full campaign as JSON (see schema below). Use only category names from the list above. Use the current date, weekday, upcoming events, and store data (best sellers, slow movers, new arrivals, stock) to suggest a campaign that is relevant RIGHT NOW.';
 
 		return implode( "\n", $lines );
+	}
+
+	/**
+	 * Build time- and data-aware context (date, weekday, events, best sellers, slow movers, new arrivals, stock).
+	 *
+	 * Cached briefly to avoid heavy queries on every AI call. Filter 'wsscd_cycle_ai_smart_context' can add more.
+	 *
+	 * @since 1.0.0
+	 * @return string Context block for the prompt.
+	 */
+	private function build_smart_context(): string {
+		$cache_key = 'wsscd_cycle_ai_smart_context';
+		$cached    = get_transient( $cache_key );
+		if ( is_string( $cached ) && '' !== $cached ) {
+			return $cached;
+		}
+
+		$parts = array();
+
+		// Current date, time, weekday (store timezone). Use 2-arg wp_date() to avoid PHP 9+ DateTime::setTimezone(string) fatal.
+		$now   = function_exists( 'wp_date' ) ? wp_date( 'Y-m-d H:i', time() ) : gmdate( 'Y-m-d H:i' );
+		$day   = function_exists( 'wp_date' ) ? wp_date( 'l', time() ) : gmdate( 'l' );
+		$parts[] = 'Current moment (store timezone): ' . $now . ', ' . $day . '.';
+
+		// Upcoming events (holidays / promotions) – filter so merchant or code can inject.
+		$events = $this->get_upcoming_events();
+		if ( ! empty( $events ) ) {
+			$parts[] = 'Upcoming events or holidays (suggest campaigns that align): ' . implode( '; ', $events );
+		}
+
+		// Best sellers (top products by recent sales).
+		$bestsellers = $this->get_bestsellers_summary();
+		if ( '' !== $bestsellers ) {
+			$parts[] = $bestsellers;
+		}
+
+		// Slow movers (products with few or no recent sales).
+		$slow = $this->get_slow_movers_summary();
+		if ( '' !== $slow ) {
+			$parts[] = $slow;
+		}
+
+		// New arrivals (recently published products).
+		$new_arrivals = $this->get_new_arrivals_summary();
+		if ( '' !== $new_arrivals ) {
+			$parts[] = $new_arrivals;
+		}
+
+		// Stock summary (low stock, out of stock – opportunity for clearance).
+		$stock = $this->get_stock_summary();
+		if ( '' !== $stock ) {
+			$parts[] = $stock;
+		}
+
+		$raw = implode( "\n", $parts );
+		$out = apply_filters( 'wsscd_cycle_ai_smart_context', $raw );
+		if ( ! is_string( $out ) ) {
+			$out = $raw;
+		}
+
+		set_transient( $cache_key, $out, 20 * MINUTE_IN_SECONDS );
+		return $out;
+	}
+
+	/**
+	 * Get upcoming events / holidays for the next 30 days (for time-relevant suggestions).
+	 *
+	 * @since 1.0.0
+	 * @return array List of event strings.
+	 */
+	private function get_upcoming_events(): array {
+		$events = array();
+		$today  = wp_date( 'Y-m-d' );
+		$year   = (int) wp_date( 'Y' );
+
+		// Next 30 days: add well-known dates if they fall in range.
+		$known = array(
+			'Valentine\'s Day'       => $year . '-02-14',
+			'St. Patrick\'s Day'     => $year . '-03-17',
+			'Easter Sunday'          => $this->get_easter_date( $year ),
+			'Mother\'s Day'          => $this->get_mothers_day( $year ),
+			'Father\'s Day'          => $this->get_fathers_day( $year ),
+			'Independence Day (US)'  => $year . '-07-04',
+			'Halloween'              => $year . '-10-31',
+			'Black Friday'           => $this->get_black_friday( $year ),
+			'Cyber Monday'           => $this->get_cyber_monday( $year ),
+			'Christmas'              => $year . '-12-25',
+			'New Year\'s Eve'         => $year . '-12-31',
+		);
+
+		$cutoff = strtotime( $today . ' +30 days' );
+		foreach ( $known as $label => $date ) {
+			if ( '' === $date ) {
+				continue;
+			}
+			$ts = strtotime( $date );
+			if ( $ts >= strtotime( $today ) && $ts <= $cutoff ) {
+				$events[] = $label . ' (' . $date . ')';
+			}
+		}
+
+		$events = apply_filters( 'wsscd_cycle_ai_upcoming_events', $events );
+		return is_array( $events ) ? $events : array();
+	}
+
+	/**
+	 * Easter Sunday (approximate for Western Christianity).
+	 *
+	 * @param int $year Year.
+	 * @return string Y-m-d or empty.
+	 */
+	private function get_easter_date( int $year ): string {
+		$a = $year % 19;
+		$b = (int) floor( $year / 100 );
+		$c = $year % 100;
+		$d = (int) floor( $b / 4 );
+		$e = $b % 4;
+		$f = (int) floor( ( $b + 8 ) / 25 );
+		$g = (int) floor( ( $b - $f + 1 ) / 3 );
+		$h = ( 19 * $a + $b - $d - $g + 15 ) % 30;
+		$i = (int) floor( $c / 4 );
+		$k = $c % 4;
+		$l = ( 32 + 2 * $e + 2 * $i - $h - $k ) % 7;
+		$m = (int) floor( ( $a + 11 * $h + 22 * $l ) / 451 );
+		$month = (int) floor( ( $h + $l - 7 * $m + 114 ) / 31 );
+		$day   = ( ( $h + $l - 7 * $m + 114 ) % 31 ) + 1;
+		if ( $month < 1 || $month > 12 || $day < 1 || $day > 31 ) {
+			return '';
+		}
+		return sprintf( '%04d-%02d-%02d', $year, $month, $day );
+	}
+
+	private function get_mothers_day( int $year ): string {
+		$second_sunday = strtotime( "second sunday of May $year" );
+		return $second_sunday ? wp_date( 'Y-m-d', $second_sunday ) : '';
+	}
+
+	private function get_fathers_day( int $year ): string {
+		$third_sunday = strtotime( "third sunday of June $year" );
+		return $third_sunday ? wp_date( 'Y-m-d', $third_sunday ) : '';
+	}
+
+	private function get_black_friday( int $year ): string {
+		$thanksgiving = strtotime( "fourth thursday of November $year" );
+		if ( ! $thanksgiving ) {
+			return '';
+		}
+		return wp_date( 'Y-m-d', strtotime( '+1 day', $thanksgiving ) );
+	}
+
+	private function get_cyber_monday( int $year ): string {
+		$thanksgiving = strtotime( "fourth thursday of November $year" );
+		if ( ! $thanksgiving ) {
+			return '';
+		}
+		return wp_date( 'Y-m-d', strtotime( '+4 days', $thanksgiving ) );
+	}
+
+	/**
+	 * Best sellers summary (top products by quantity sold in last 30 days). Cached.
+	 *
+	 * @since 1.0.0
+	 * @return string Summary line(s) or empty.
+	 */
+	private function get_bestsellers_summary(): string {
+		if ( ! function_exists( 'wc_get_orders' ) ) {
+			return '';
+		}
+
+		$date_from = gmdate( 'Y-m-d H:i:s', time() - 30 * DAY_IN_SECONDS );
+		$orders = wc_get_orders(
+			array(
+				'status'       => array( 'wc-completed', 'wc-processing' ),
+				'limit'        => 200,
+				'date_created' => '>' . $date_from,
+				'return'       => 'ids',
+			)
+		);
+
+		if ( empty( $orders ) || ! is_array( $orders ) ) {
+			return '';
+		}
+
+		$qty_by_id = array();
+		foreach ( $orders as $order_id ) {
+			$order = wc_get_order( $order_id );
+			if ( ! $order ) {
+				continue;
+			}
+			foreach ( $order->get_items() as $item ) {
+				$product_id = $item->get_product_id();
+				if ( $product_id ) {
+					$qty_by_id[ $product_id ] = ( isset( $qty_by_id[ $product_id ] ) ? $qty_by_id[ $product_id ] : 0 ) + $item->get_quantity();
+				}
+			}
+		}
+
+		if ( empty( $qty_by_id ) ) {
+			return '';
+		}
+
+		arsort( $qty_by_id, SORT_NUMERIC );
+		$top = array_slice( array_keys( $qty_by_id ), 0, 10 );
+		$names = array();
+		foreach ( $top as $pid ) {
+			$product = wc_get_product( $pid );
+			if ( $product && is_a( $product, 'WC_Product' ) ) {
+				$name = $product->get_name();
+				if ( $name ) {
+					$names[] = $name;
+				}
+			}
+		}
+
+		if ( empty( $names ) ) {
+			return '';
+		}
+
+		return 'Best sellers (last 30 days): ' . implode( ', ', array_slice( $names, 0, 8 ) ) . '.';
+	}
+
+	/**
+	 * Slow movers: products with no or very low sales in last 30 days (candidates for clearance).
+	 *
+	 * @since 1.0.0
+	 * @return string Summary or empty.
+	 */
+	private function get_slow_movers_summary(): string {
+		if ( ! function_exists( 'wc_get_orders' ) || ! function_exists( 'wc_get_products' ) ) {
+			return '';
+		}
+
+		$date_from = gmdate( 'Y-m-d H:i:s', time() - 30 * DAY_IN_SECONDS );
+		$orders = wc_get_orders(
+			array(
+				'status'       => array( 'wc-completed', 'wc-processing' ),
+				'limit'        => 300,
+				'date_created' => '>' . $date_from,
+				'return'       => 'ids',
+			)
+		);
+
+		$sold_ids = array();
+		if ( ! empty( $orders ) && is_array( $orders ) ) {
+			foreach ( $orders as $order_id ) {
+				$order = wc_get_order( $order_id );
+				if ( ! $order ) {
+					continue;
+				}
+				foreach ( $order->get_items() as $item ) {
+					$pid = $item->get_product_id();
+					if ( $pid ) {
+						$sold_ids[ $pid ] = true;
+					}
+				}
+			}
+		}
+
+		// Products published but not in sold list (simplified "slow movers").
+		$products = wc_get_products(
+			array(
+				'status'  => 'publish',
+				'limit'   => 100,
+				'orderby' => 'date',
+				'order'   => 'ASC',
+				'return'  => 'ids',
+			)
+		);
+
+		if ( empty( $products ) || ! is_array( $products ) ) {
+			return '';
+		}
+
+		$slow = array();
+		foreach ( array_slice( $products, 0, 50 ) as $pid ) {
+			if ( isset( $sold_ids[ $pid ] ) ) {
+				continue;
+			}
+			$product = wc_get_product( $pid );
+			if ( $product && is_a( $product, 'WC_Product' ) ) {
+				$name = $product->get_name();
+				if ( $name ) {
+					$slow[] = $name;
+				}
+			}
+			if ( count( $slow ) >= 5 ) {
+				break;
+			}
+		}
+
+		if ( empty( $slow ) ) {
+			return '';
+		}
+
+		return 'Slow movers (little or no recent sales; good for clearance): ' . implode( ', ', $slow ) . '.';
+	}
+
+	/**
+	 * New arrivals: recently published products (last 14 days).
+	 *
+	 * @since 1.0.0
+	 * @return string Summary or empty.
+	 */
+	private function get_new_arrivals_summary(): string {
+		if ( ! function_exists( 'wc_get_products' ) ) {
+			return '';
+		}
+
+		$after = wp_date( 'Y-m-d', strtotime( '-14 days' ) );
+		$today = wp_date( 'Y-m-d' );
+		$products = wc_get_products(
+			array(
+				'status'       => 'publish',
+				'limit'        => 20,
+				'orderby'      => 'date',
+				'order'        => 'DESC',
+				'date_created' => $after . '...' . $today,
+				'return'       => 'objects',
+			)
+		);
+
+		if ( empty( $products ) ) {
+			return '';
+		}
+
+		$count = is_array( $products ) ? count( $products ) : 0;
+		$names = array();
+		foreach ( array_slice( $products, 0, 5 ) as $product ) {
+			if ( is_a( $product, 'WC_Product' ) ) {
+				$n = $product->get_name();
+				if ( $n ) {
+					$names[] = $n;
+				}
+			}
+		}
+
+		$out = 'New arrivals (last 14 days): ' . $count . ' product(s).';
+		if ( ! empty( $names ) ) {
+			$out .= ' Examples: ' . implode( ', ', $names ) . '.';
+		}
+		return $out;
+	}
+
+	/**
+	 * Stock summary: low stock and out-of-stock counts (opportunity for clearance or restock promos).
+	 *
+	 * @since 1.0.0
+	 * @return string Summary or empty.
+	 */
+	private function get_stock_summary(): string {
+		if ( ! function_exists( 'wc_get_products' ) ) {
+			return '';
+		}
+
+		$low = 0;
+		$out = 0;
+		$products = wc_get_products(
+			array(
+				'status' => 'publish',
+				'limit'  => 500,
+				'return' => 'ids',
+			)
+		);
+
+		if ( empty( $products ) || ! is_array( $products ) ) {
+			return '';
+		}
+
+		foreach ( $products as $pid ) {
+			$product = wc_get_product( $pid );
+			if ( ! $product || ! is_a( $product, 'WC_Product' ) ) {
+				continue;
+			}
+			if ( $product->managing_stock() ) {
+				$stock = $product->get_stock_quantity();
+				if ( $stock !== null && $stock <= $product->get_low_stock_amount() ) {
+					++$low;
+				}
+				if ( $stock !== null && $stock <= 0 ) {
+					++$out;
+				}
+			} else {
+				$status = $product->get_stock_status();
+				if ( 'outofstock' === $status ) {
+					++$out;
+				}
+			}
+		}
+
+		if ( $low === 0 && $out === 0 ) {
+			return '';
+		}
+
+		$parts = array();
+		if ( $low > 0 ) {
+			$parts[] = $low . ' product(s) low on stock';
+		}
+		if ( $out > 0 ) {
+			$parts[] = $out . ' out of stock';
+		}
+		return 'Stock: ' . implode( ', ', $parts ) . '. Consider clearance or restock campaigns.';
+	}
+
+	/**
+	 * Get categories with IDs and product counts (for smarter targeting).
+	 *
+	 * @since 1.0.0
+	 * @return array List of arrays with id, name, count.
+	 */
+	private function get_categories_with_ids_and_counts(): array {
+		if ( ! taxonomy_exists( 'product_cat' ) ) {
+			return $this->get_categories_with_ids();
+		}
+
+		$terms = get_terms(
+			array(
+				'taxonomy'   => 'product_cat',
+				'hide_empty' => true,
+				'number'     => 50,
+				'orderby'    => 'name',
+				'order'      => 'ASC',
+			)
+		);
+
+		if ( is_wp_error( $terms ) || empty( $terms ) ) {
+			return $this->get_categories_with_ids();
+		}
+
+		$out = array();
+		foreach ( $terms as $term ) {
+			if ( isset( $term->term_id, $term->name ) && '' !== $term->name ) {
+				$out[] = array(
+					'id'    => (int) $term->term_id,
+					'name'  => $term->name,
+					'count' => isset( $term->count ) ? (int) $term->count : 0,
+				);
+			}
+		}
+
+		return $out;
 	}
 
 	/**
@@ -620,10 +1079,15 @@ class WSSCD_Cycle_AI_Service {
 	 */
 	private function get_system_prompt_for_full_campaign(): string {
 		$p  = 'You are Cycle AI for the Smart Cycle Discounts WooCommerce plugin. ';
+		$p .= 'You will receive the current date and time, weekday, upcoming events or holidays, store categories (with product counts), best sellers, slow movers, new arrivals, and stock summary. ';
+		$p .= 'Use this data to suggest a campaign that is relevant RIGHT NOW (e.g. holiday or event promos, clear slow movers, highlight new arrivals, flash sale on overstock). ';
 		$p .= 'Generate exactly ONE complete campaign that the merchant can review and save. ';
 		$p .= 'Use only the store information provided. ';
 		$p .= 'Plugin supports: product_selection_type (all_products, random_products, specific_products, smart_selection), ';
 		$p .= 'discount_type (percentage, fixed, bogo, tiered), category filter, and schedule (immediate or scheduled). ';
+		$p .= 'Product selection rules: Prefer "all_products" when targeting one or more categories (category_names). ';
+		$p .= 'Use "random_products" only when the campaign idea is explicitly about a random subset (e.g. "Weekly random picks", "Flash sale – 5 random items"). ';
+		$p .= 'Vary your suggestions: do not always use random_products; often use all_products with category_names so the whole category is on sale. ';
 		$p .= 'Return ONLY valid JSON with this exact structure (no markdown, no comments):' . "\n";
 		$p .= '{' . "\n";
 		$p .= '  "name": "Short campaign name",' . "\n";
@@ -640,7 +1104,11 @@ class WSSCD_Cycle_AI_Service {
 		$p .= '  "end_date": "Y-m-d"' . "\n";
 		$p .= '}' . "\n";
 		$p .= 'Rules: category_names must be exact names from the provided list. duration_days 3-21. discount_value 5-60 for percentage. start_date/end_date only when start_type is scheduled. ';
-		$p .= 'In name and description use only real words and category names from the provided list; never use numbers, category IDs, or placeholders (e.g. 101010).';
+		$p .= 'When using random_products set random_count (1-100); when using all_products random_count is ignored. ';
+		$p .= 'Campaign name and description must be human-readable only: use real words, event names, or category names from the list. ';
+		$p .= 'When a merchant request or focus is provided (e.g. "Flash Sale", "Clearance", "New Arrivals"), use that as the primary theme for the campaign name—e.g. "Flash Sale", "Overstock Clearance", "New Arrivals Promo". ';
+		$p .= 'Only add a seasonal or event prefix (e.g. Valentine\'s, Black Friday) when it clearly fits the requested type or when no specific type was given. Do not prefix every campaign with the same seasonal theme. ';
+		$p .= 'Never put numbers, IDs, or digit sequences (like 101010) in name or description.';
 		return $p;
 	}
 
@@ -675,22 +1143,29 @@ class WSSCD_Cycle_AI_Service {
 	}
 
 	/**
-	 * Sanitize AI-generated name or description: replace numeric placeholders (e.g. 101010) with category name.
+	 * Sanitize AI-generated name or description: remove numeric placeholders (e.g. 1010101010).
+	 *
+	 * Some models output digit sequences as placeholders. We strip those and collapse spaces.
+	 * If nothing meaningful remains, use the category name or a fallback.
 	 *
 	 * @since 1.0.0
 	 *
 	 * @param string $text                 Name or description from AI.
-	 * @param string $first_category_name  First valid category name to substitute, or empty.
+	 * @param string $first_category_name  First valid category name for fallback, or empty.
 	 * @return string Sanitized text.
 	 */
 	private function sanitize_ai_name_description( string $text, string $first_category_name ): string {
 		if ( '' === $text ) {
 			return $text;
 		}
-		$replacement = '' !== $first_category_name ? $first_category_name : __( 'Selected products', 'smart-cycle-discounts' );
-		// Replace one or more digits (e.g. 101010, 123) with the category/replacement.
-		$sanitized = preg_replace( '/\b\d+\b/', $replacement, $text );
-		return is_string( $sanitized ) ? $sanitized : $text;
+		$fallback = '' !== $first_category_name ? $first_category_name : __( 'AI-suggested campaign', 'smart-cycle-discounts' );
+		// Remove any token that is purely digits (e.g. 1010101010, 123) and collapse spaces.
+		$sanitized = preg_replace( '/\s*\b\d+\b\s*/', ' ', $text );
+		$sanitized = is_string( $sanitized ) ? preg_replace( '/\s{2,}/', ' ', trim( $sanitized ) ) : '';
+		if ( '' === $sanitized ) {
+			return $fallback;
+		}
+		return $sanitized;
 	}
 
 	/**
@@ -771,6 +1246,11 @@ class WSSCD_Cycle_AI_Service {
 	 */
 	private function map_full_campaign_to_wizard_steps( array $raw ): array {
 		$category_names = isset( $raw['category_names'] ) && is_array( $raw['category_names'] ) ? $raw['category_names'] : array();
+		// Drop AI placeholder "categories" that are purely digits (e.g. 1010101010, 11111).
+		$category_names = array_values( array_filter( $category_names, function ( $n ) {
+			$n = is_string( $n ) ? trim( $n ) : '';
+			return '' !== $n && ! preg_match( '/^\d+$/', $n );
+		} ) );
 		$category_ids   = $this->map_category_names_to_ids( $category_names );
 		$first_category_name = ! empty( $category_names ) && is_string( $category_names[0] ) ? trim( $category_names[0] ) : '';
 

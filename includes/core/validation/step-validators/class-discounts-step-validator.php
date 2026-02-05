@@ -573,31 +573,8 @@ class WSSCD_Discounts_Step_Validator {
 			}
 		}
 
-		// Rule 8: Fixed discount exceeding threshold value (negative price)
-		if ( 'fixed' === $tier_mode ) {
-			foreach ( $tiers as $index => $tier ) {
-				if ( ! isset( $tier['min_quantity'] ) || ! isset( $tier['discount_value'] ) ) {
-					continue;
-				}
-
-				$threshold = floatval( $tier['min_quantity'] );
-				$discount  = floatval( $tier['discount_value'] );
-
-				// Fixed discount can't exceed threshold (would give negative price)
-				if ( $discount >= $threshold && $threshold > 0 ) {
-					$errors->add(
-						'tiered_fixed_exceeds_threshold',
-						sprintf(
-							/* translators: 1: tier number, 2: discount, 3: threshold */
-							__( 'Tier %1$d has fixed discount ($%2$.2f) that exceeds or equals the threshold value (%3$.2f). This could result in negative or zero prices.', 'smart-cycle-discounts' ),
-							$index + 1,
-							$discount,
-							$threshold
-						)
-					);
-				}
-			}
-		}
+		// Rule 8: Fixed discount per item cannot be validated against min_quantity (different units).
+		// Strategy caps fixed discount at product price and order_total at subtotal; no tier-level check here.
 	}
 
 	/**
@@ -715,25 +692,23 @@ class WSSCD_Discounts_Step_Validator {
 
 		// Rule 5: Very small thresholds (probably a mistake)
 		foreach ( $thresholds as $threshold ) {
-			if ( isset( $threshold['spend'] ) ) {
-				$spend_amount = floatval( $threshold['spend'] );
-				if ( $spend_amount > 0 && $spend_amount < 1 ) {
-					// Threshold less than $1 is unusual
-					self::log_hint( sprintf( 'Spending threshold of $%s is very small. This may be unintentional.', number_format( $spend_amount, 2 ) ) );
-					break; // Only warn once
-				}
+			$spend_amount = isset( $threshold['spend_amount'] ) ? floatval( $threshold['spend_amount'] ) : 0;
+			if ( $spend_amount > 0 && $spend_amount < 1 ) {
+				// Threshold less than $1 is unusual
+				self::log_hint( sprintf( 'Spending threshold of $%s is very small. This may be unintentional.', number_format( $spend_amount, 2 ) ) );
+				break; // Only warn once
 			}
 		}
 
 		// Rule 6: Fixed discount exceeding spend amount (negative cart)
 		if ( 'fixed' === $threshold_mode ) {
 			foreach ( $thresholds as $index => $threshold ) {
-				if ( ! isset( $threshold['spend'] ) || ! isset( $threshold['discount'] ) ) {
+				if ( ! isset( $threshold['spend_amount'] ) || ! isset( $threshold['discount_value'] ) ) {
 					continue;
 				}
 
-				$spend_amount = floatval( $threshold['spend'] );
-				$discount     = floatval( $threshold['discount'] );
+				$spend_amount = floatval( $threshold['spend_amount'] );
+				$discount     = floatval( $threshold['discount_value'] );
 
 				// Fixed discount can't exceed spend amount (would give negative cart)
 				if ( $discount >= $spend_amount && $spend_amount > 0 ) {
@@ -754,10 +729,8 @@ class WSSCD_Discounts_Step_Validator {
 		// Rule 7: Unrealistic threshold jumps
 		if ( count( $thresholds ) > 1 ) {
 			for ( $i = 1; $i < count( $thresholds ); $i++ ) {
-				// Support both old format (spend) and new format (threshold)
-				$spend_field = isset( $thresholds[ $i ]['threshold'] ) ? 'threshold' : 'spend';
-				$prev_amount = floatval( $thresholds[ $i - 1 ][ $spend_field ] );
-				$curr_amount = floatval( $thresholds[ $i ][ $spend_field ] );
+				$prev_amount = isset( $thresholds[ $i - 1 ]['spend_amount'] ) ? floatval( $thresholds[ $i - 1 ]['spend_amount'] ) : 0;
+				$curr_amount = isset( $thresholds[ $i ]['spend_amount'] ) ? floatval( $thresholds[ $i ]['spend_amount'] ) : 0;
 				$jump        = $curr_amount - $prev_amount;
 
 				// If jump is more than 100x the previous amount, it's probably unrealistic

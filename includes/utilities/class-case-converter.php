@@ -348,6 +348,9 @@ class WSSCD_Case_Converter {
 			'topic_id',
 			'categories',
 			'selected',
+			// Cycle AI Create Full - optional user brief.
+			'user_brief',
+			'userBrief',
 		);
 	}
 

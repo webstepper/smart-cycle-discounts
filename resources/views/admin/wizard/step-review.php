@@ -251,7 +251,19 @@ if ( isset( $step_data['start_type'] ) && 'scheduled' === $step_data['start_type
 		$has_future_start = ( strtotime( $start_date ) > time() );
 	}
 }
+$show_cycle_ai_regenerate = ! empty( $step_data['_show_cycle_ai_regenerate'] ) && ! empty( $step_data['_prefilled_from_cycle_ai'] );
+$cycle_ai_user_brief     = ! empty( $step_data['_cycle_ai_user_brief'] ) && is_string( $step_data['_cycle_ai_user_brief'] ) ? $step_data['_cycle_ai_user_brief'] : '';
 ?>
+<?php if ( $show_cycle_ai_regenerate ) : ?>
+<div class="wsscd-review-cycle-ai-regenerate" style="margin-bottom: 1.5em;">
+	<p class="wsscd-review-cycle-ai-regenerate__text">
+		<?php esc_html_e( "Not quite right? Get a different AI suggestion and replace this campaign's settings.", 'smart-cycle-discounts' ); ?>
+	</p>
+	<button type="button" class="button button-secondary wsscd-regenerate-with-ai-btn" id="wsscd-regenerate-with-ai-btn" data-default-text="<?php echo esc_attr__( 'Regenerate with AI', 'smart-cycle-discounts' ); ?>" data-loading-text="<?php echo esc_attr__( 'Generating new suggestion…', 'smart-cycle-discounts' ); ?>" data-user-brief="<?php echo esc_attr( $cycle_ai_user_brief ); ?>">
+		<?php esc_html_e( 'Regenerate with AI', 'smart-cycle-discounts' ); ?>
+	</button>
+</div>
+<?php endif; ?>
 <div class="wsscd-launch-container">
 	<div class="wsscd-launch-options">
 		<label class="wsscd-launch-option" data-option="active">

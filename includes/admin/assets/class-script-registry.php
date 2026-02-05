@@ -460,7 +460,7 @@ class WSSCD_Script_Registry {
 			'wsscd-campaign-overview-panel',
 			array(
 				'src'       => 'resources/assets/js/admin/campaign-overview-panel.js',
-				'deps'      => array( 'jquery', 'wsscd-admin', 'wsscd-loader-utility' ),
+				'deps'      => array( 'jquery', 'wsscd-admin', 'wsscd-loader-utility', 'wsscd-shared-notification-service' ),
 				'pages'     => array( 'wsscd-campaigns', 'wsscd-analytics' ),
 				// No action condition - loads on all actions for wsscd-campaigns page
 				// JS checks URL and only opens panel when action=view
@@ -474,7 +474,7 @@ class WSSCD_Script_Registry {
 			'wsscd-tools',
 			array(
 				'src'      => 'resources/assets/js/admin/tools.js',
-				'deps'     => array( 'jquery', 'wsscd-icon-helper', 'wsscd-loader-utility' ),
+				'deps'     => array( 'jquery', 'wsscd-icon-helper', 'wsscd-loader-utility', 'wsscd-shared-notification-service' ),
 				'pages'    => array( 'wsscd-tools' ),
 				'localize' => 'wsscdAdmin',
 			)
@@ -616,6 +616,7 @@ class WSSCD_Script_Registry {
 					'wsscd-wizard-session-monitor', // Session expiration monitoring
 					'wsscd-wizard-orchestrator',
 					'wsscd-tooltips', // Add tooltips as core dependency
+					'wsscd-free-shipping', // Load before wizard so StepPersistence can resolve FreeShipping handler when discounts step populateFields runs (script order).
 				),
 				'pages'     => array( 'wsscd-campaigns' ),
 				'condition' => array( 'action' => 'wizard' ),
@@ -1356,7 +1357,7 @@ class WSSCD_Script_Registry {
 			$step_modules = array(
 				'basic'     => array( 'wsscd-basic-state', 'wsscd-basic-api', 'wsscd-basic-fields' ),
 				'products'  => array( 'wsscd-constants-product-selection', 'wsscd-tom-select-base', 'wsscd-products-state', 'wsscd-products-api', 'wsscd-products-picker' ),
-				'discounts' => array( 'wsscd-discounts-config', 'wsscd-discounts-state', 'wsscd-discounts-api', 'wsscd-discounts-conditions', 'wsscd-discounts-type-registry' ),
+				'discounts' => array( 'wsscd-discounts-config', 'wsscd-discounts-state', 'wsscd-discounts-api', 'wsscd-discounts-conditions', 'wsscd-discounts-type-registry', 'wsscd-free-shipping' ),
 				'schedule'  => array( 'jquery-ui-datepicker', 'wsscd-schedule-state', 'wsscd-schedule-api', 'wsscd-schedule-config' ),
 				'review'    => array( 'wsscd-review-state', 'wsscd-review-api', 'wsscd-review-components' ),
 			);

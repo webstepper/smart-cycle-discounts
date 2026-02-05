@@ -307,7 +307,7 @@ class WSSCD_Campaign_Suggestions_Service {
 						'id'     => $campaign->get_id(),
 						'name'   => $campaign->get_name(),
 						'status' => $campaign->get_status(),
-						'url'    => admin_url( 'admin.php?page=wsscd-campaigns&action=edit&id=' . $campaign->get_id() ),
+						'url'    => admin_url( 'admin.php?page=wsscd-campaigns&action=wizard&intent=edit&id=' . $campaign->get_id() ),
 					);
 				} else {
 					$suggestion['has_campaign'] = false;

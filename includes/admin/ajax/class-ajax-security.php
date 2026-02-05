@@ -728,7 +728,6 @@ class WSSCD_Ajax_Security {
 	private static function get_signed_actions() {
 		return array(
 			// Critical operations
-			'wsscd_save_campaign',
 			'wsscd_delete_campaign',
 			'wsscd_complete_wizard',
 			'wsscd_toggle_campaign_status',

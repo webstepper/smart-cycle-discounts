@@ -237,8 +237,8 @@
 		buildContent: function( targetStep, contentSkeleton, sidebar, navigation ) {
 			return [
 				'<form method="post" class="wsscd-wizard-form" autocomplete="off">',
-				'<div class="wsscd-wizard-content wsscd-wizard-layout" style="display:flex;gap:var(--wsscd-gap-xl);padding:0 0 40px 0;align-items:flex-start;" data-step="' + targetStep + '">',
-				'<div class="wsscd-step-main-content wsscd-wizard-step--' + targetStep + '" style="flex:1;min-width:0;">' + contentSkeleton + '</div>',
+				'<div class="wsscd-wizard-content wsscd-wizard-layout" data-step="' + targetStep + '">',
+				'<div class="wsscd-step-main-content wsscd-wizard-step--' + targetStep + '">' + contentSkeleton + '</div>',
 				sidebar,
 				'</div>',
 				navigation,
@@ -485,7 +485,7 @@
 		createReviewStepCards: function() {
 			var self = this;
 
-			// Loading state
+			// Loading state (matches #wsscd-health-loading)
 			var loading = [
 				'<div style="text-align:center;padding:40px 20px;margin-bottom:20px;">',
 				'<div class="wsscd-skeleton-spinner" style="width:40px;height:40px;border-radius:50%;margin:0 auto 16px;"></div>',
@@ -493,18 +493,51 @@
 				'</div>'
 			].join( '' );
 
-			// Health Score
+			// Health Score card (headerless - matches .wsscd-health-score-card)
 			var healthScore = [
-				'<div style="padding:24px;margin-bottom:20px;border-radius:8px;' + this.styles.border + this.styles.flexBetween + '">',
+				'<div class="wsscd-card wsscd-wizard-card" style="' + this.styles.card + '">',
+				'<div class="wsscd-card__content">',
+				'<div style="padding:24px;margin-bottom:0;border-radius:8px;' + this.styles.border + this.styles.flexBetween + '">',
 				'<div>',
 				this.line( '180px', '20px', 'margin-bottom:8px;display:block;' ),
 				this.line( '140px', '14px' ),
 				'</div>',
 				'<div class="wsscd-skeleton-score" style="width:80px;height:50px;border-radius:8px;"></div>',
-				'</div>'
+				'</div></div></div>'
 			].join( '' );
 
-			// Impact (3 metrics)
+			// Health Factors card (Critical Issues / recommendations placeholder)
+			var healthFactors = this.cardStart( '160px', '75%' ) +
+				'<div style="margin-bottom:var(--wsscd-spacing-md);">' + self.line( '90%', '14px', 'display:block;' ) + '</div>' +
+				'<div style="margin-bottom:var(--wsscd-spacing-md);">' + self.line( '85%', '14px', 'display:block;' ) + '</div>' +
+				'<div>' + self.line( '70%', '14px', 'display:block;' ) + '</div>' +
+				this.cardEnd();
+
+			// Recommendations card
+			var recommendations = this.cardStart( '150px', '70%' ) +
+				'<div style="display:flex;flex-direction:column;gap:var(--wsscd-spacing-sm);">' +
+				[ 0, 1, 2 ].map( function() {
+					return '<div style="' + self.styles.flexCenter + 'gap:var(--wsscd-spacing-md);">' +
+						self.icon( 20, 'flex-shrink:0;' ) +
+						self.line( '75%', '14px', 'margin-bottom:0;' ) +
+						'</div>';
+				} ).join( '' ) +
+				'</div>' +
+				this.cardEnd();
+
+			// Campaign Conflicts card
+			var conflicts = this.cardStart( '160px', '65%' ) +
+				'<div style="display:flex;flex-direction:column;gap:var(--wsscd-spacing-sm);">' +
+				[ 0, 1 ].map( function() {
+					return '<div style="' + self.styles.flexCenter + 'gap:var(--wsscd-spacing-md);">' +
+						self.icon( 16, 'flex-shrink:0;' ) +
+						self.line( '80%', '13px', 'margin-bottom:0;' ) +
+						'</div>';
+				} ).join( '' ) +
+				'</div>' +
+				this.cardEnd();
+
+			// Impact (3 metrics - matches .wsscd-impact-grid)
 			var metrics = [ 0, 1, 2 ].map( function() {
 				return [
 					'<div style="padding:16px;border-radius:6px;' + self.styles.border + 'text-align:center;">',
@@ -522,7 +555,20 @@
 				this.cardEnd()
 			].join( '' );
 
-			// Launch Options (2 cards)
+			// Configuration Summary card (grid of summary items)
+			var summaryItems = [ 0, 1, 2, 3, 4 ].map( function() {
+				return '<div style="display:flex;justify-content:space-between;align-items:center;padding:var(--wsscd-spacing-sm) 0;">' +
+					self.line( '100px', '14px', 'margin-bottom:0;' ) +
+					self.line( '60px', '14px', 'margin-bottom:0;' ) +
+					'</div>';
+			} ).join( '' );
+			var configSummary = this.cardStart( '180px', '60%' ) +
+				'<div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--wsscd-spacing-md);">' +
+				summaryItems +
+				'</div>' +
+				this.cardEnd();
+
+			// Launch Options (2 options - matches .wsscd-launch-container)
 			var options = [ 0, 1 ].map( function() {
 				return [
 					'<div style="flex:1;padding:20px;border-radius:8px;' + self.styles.border + '">',
@@ -539,14 +585,14 @@
 			var launch = [
 				this.cardStart( '180px', '60%' ),
 				'<div style="display:flex;gap:16px;">' + options + '</div>',
-				'<div style="margin-top:16px;padding:12px;background:#f9f9f9;border-radius:4px;' + this.styles.flexCenter + 'gap:10px;">',
+				'<div style="margin-top:16px;padding:12px;background:var(--wsscd-color-surface-alt);border-radius:4px;' + this.styles.flexCenter + 'gap:10px;">',
 				this.icon( 16, 'flex-shrink:0;' ),
 				this.line( '80%', '13px' ),
 				'</div>',
 				this.cardEnd()
 			].join( '' );
 
-			return loading + healthScore + impact + launch;
+			return loading + healthScore + healthFactors + recommendations + conflicts + impact + configSummary + launch;
 		}
 	};
 

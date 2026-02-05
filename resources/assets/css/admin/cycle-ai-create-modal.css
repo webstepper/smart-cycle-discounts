@@ -1,8 +1,8 @@
 /**
- * Cycle AI Create Full - Progress Modal
+ * Cycle AI Create Full - Modal
  *
- * Modal shown while "Create with AI" runs: loader and fading
- * conversational phrases.
+ * Modal for "Create with AI": campaign type cards (Recommended + Other),
+ * then progress (loader + phrases). Styled to match plugin design system.
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/css/admin/cycle-ai-create-modal.css
@@ -10,11 +10,19 @@
  */
 
 /* ==========================================================================
-   Visibility: hidden by default, only show when --visible is added by JS
+   Visibility & layout
    ========================================================================== */
 
 #wsscd-cycle-ai-create-modal.wsscd-modal--cycle-ai-create {
 	display: none;
+	align-items: center;
+	justify-content: center;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	z-index: var(--wsscd-z-modal);
 }
 
 #wsscd-cycle-ai-create-modal.wsscd-modal--cycle-ai-create.wsscd-modal--visible {
@@ -22,13 +30,35 @@
 }
 
 /* ==========================================================================
+   Overlay
+   ========================================================================== */
+
+.wsscd-modal--cycle-ai-create .wsscd-modal__overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: var(--wsscd-overlay-heavy);
+	animation: wsscd-cycle-ai-overlay-in var(--wsscd-transition-slow) ease-out;
+}
+
+/* ==========================================================================
    Modal container
    ========================================================================== */
 
 .wsscd-modal--cycle-ai-create .wsscd-modal__container.wsscd-cycle-ai-create-modal__container {
-	max-width: 400px;
+	position: relative;
+	max-width: 520px;
+	width: 90%;
 	padding: 0;
 	overflow: hidden;
+	background: var(--wsscd-color-white);
+	border-radius: var(--wsscd-radius-xl);
+	box-shadow: var(--wsscd-shadow-xl);
+	border: var(--wsscd-border-width) solid var(--wsscd-overlay-border);
+	animation: wsscd-cycle-ai-container-in var(--wsscd-transition-slow) var(--wsscd-ease-bounce);
+	z-index: 1;
 }
 
 /* ==========================================================================
@@ -40,24 +70,207 @@
 	flex-direction: column;
 	align-items: center;
 	text-align: center;
-	padding: var(--wsscd-padding-spacious, 28px) var(--wsscd-padding-spacious, 28px);
+	padding: var(--wsscd-padding-spacious) var(--wsscd-padding-spacious);
 }
 
 /* ==========================================================================
-   Loader
+   Title & subtitle
    ========================================================================== */
 
+.wsscd-cycle-ai-create-modal__title {
+	margin: 0 0 var(--wsscd-spacing-sm);
+	font-size: var(--wsscd-font-size-xxl);
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-text);
+	line-height: var(--wsscd-line-height-tight);
+}
+
+.wsscd-cycle-ai-create-modal__subtitle {
+	margin: 0 0 var(--wsscd-spacing-lg);
+	font-size: var(--wsscd-font-size-medium);
+	line-height: var(--wsscd-line-height-relaxed);
+	color: var(--wsscd-color-text-muted);
+}
+
+/* ==========================================================================
+   Step 1: Campaign type cards (Recommended + Other)
+   ========================================================================== */
+
+.wsscd-cycle-ai-create-modal__step-progress {
+	display: none;
+}
+
+.wsscd-cycle-ai-create-modal--progress .wsscd-cycle-ai-create-modal__step-brief {
+	display: none;
+}
+
+.wsscd-cycle-ai-create-modal--progress .wsscd-cycle-ai-create-modal__step-progress {
+	display: block;
+}
+
+.wsscd-cycle-ai-create-modal__step-brief .wsscd-cycle-ai-create-modal__content.wsscd-cycle-ai-create-modal__content--cards {
+	align-items: stretch;
+	text-align: left;
+	max-height: 70vh;
+	overflow-y: auto;
+	padding-right: var(--wsscd-spacing-md);
+}
+
+/* Scrollbar - subtle */
+.wsscd-cycle-ai-create-modal__step-brief .wsscd-cycle-ai-create-modal__content.wsscd-cycle-ai-create-modal__content--cards::-webkit-scrollbar {
+	width: 8px;
+}
+
+.wsscd-cycle-ai-create-modal__step-brief .wsscd-cycle-ai-create-modal__content.wsscd-cycle-ai-create-modal__content--cards::-webkit-scrollbar-track {
+	background: var(--wsscd-color-surface);
+	border-radius: var(--wsscd-radius-full);
+}
+
+.wsscd-cycle-ai-create-modal__step-brief .wsscd-cycle-ai-create-modal__content.wsscd-cycle-ai-create-modal__content--cards::-webkit-scrollbar-thumb {
+	background: var(--wsscd-color-border);
+	border-radius: var(--wsscd-radius-full);
+}
+
+.wsscd-cycle-ai-create-modal__step-brief .wsscd-cycle-ai-create-modal__content.wsscd-cycle-ai-create-modal__content--cards::-webkit-scrollbar-thumb:hover {
+	background: var(--wsscd-color-border-dark);
+}
+
+/* Section */
+.wsscd-cycle-ai-create-modal__section {
+	margin-bottom: var(--wsscd-spacing-xl);
+}
+
+.wsscd-cycle-ai-create-modal__section:last-of-type {
+	margin-bottom: var(--wsscd-spacing-base);
+}
+
+.wsscd-cycle-ai-create-modal__section-title {
+	margin: 0 0 var(--wsscd-spacing-sm);
+	font-size: var(--wsscd-font-size-small);
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-text-muted);
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+/* Cards grid */
+.wsscd-cycle-ai-create-modal__cards {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--wsscd-gap-sm-medium);
+}
+
+.wsscd-cycle-ai-create-modal__card {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 44px;
+	padding: var(--wsscd-padding-compact) var(--wsscd-padding-base);
+	font-size: var(--wsscd-font-size-medium);
+	font-weight: var(--wsscd-font-weight-medium);
+	font-family: var(--wsscd-font-family);
+	color: var(--wsscd-color-text);
+	background: var(--wsscd-color-white);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border);
+	border-radius: var(--wsscd-radius-lg);
+	cursor: pointer;
+	text-align: center;
+	box-shadow: var(--wsscd-shadow-sm);
+	transition: border-color var(--wsscd-transition-fast) ease,
+	            box-shadow var(--wsscd-transition-fast) ease,
+	            background-color var(--wsscd-transition-fast) ease,
+	            transform var(--wsscd-transition-fast) ease;
+}
+
+.wsscd-cycle-ai-create-modal__card:hover {
+	border-color: var(--wsscd-color-primary);
+	background: var(--wsscd-color-primary-alpha-3);
+	box-shadow: var(--wsscd-shadow-primary);
+	transform: var(--wsscd-transform-lift-subtle);
+}
+
+.wsscd-cycle-ai-create-modal__card:focus {
+	outline: none;
+}
+
+.wsscd-cycle-ai-create-modal__card:focus-visible {
+	box-shadow: var(--wsscd-ring-focus);
+}
+
+.wsscd-cycle-ai-create-modal__card.is-selected {
+	border-color: var(--wsscd-color-primary);
+	background: var(--wsscd-color-primary-alpha-10);
+	box-shadow: 0 0 0 2px var(--wsscd-color-primary-alpha-25);
+}
+
+.wsscd-cycle-ai-create-modal__card.is-selected:hover {
+	background: var(--wsscd-color-primary-alpha-15);
+}
+
+.wsscd-cycle-ai-create-modal__card.is-selected:focus-visible {
+	box-shadow: 0 0 0 2px var(--wsscd-color-primary-alpha-25), var(--wsscd-ring-focus);
+}
+
+.wsscd-cycle-ai-create-modal__card--no-preference {
+	font-style: italic;
+	color: var(--wsscd-color-text-muted);
+}
+
+.wsscd-cycle-ai-create-modal__card--no-preference.is-selected {
+	color: var(--wsscd-color-primary);
+}
+
+.wsscd-cycle-ai-create-modal__card-label {
+	pointer-events: none;
+}
+
+/* ==========================================================================
+   Footer & buttons
+   ========================================================================== */
+
+.wsscd-cycle-ai-create-modal__footer {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	align-items: center;
+	gap: var(--wsscd-gap-normal);
+	margin-top: var(--wsscd-spacing-xl);
+	padding-top: var(--wsscd-spacing-lg);
+	border-top: var(--wsscd-border-width) solid var(--wsscd-color-border-lighter);
+}
+
+.wsscd-cycle-ai-create-modal__cancel {
+	min-width: 100px;
+}
+
+.wsscd-cycle-ai-create-modal__create {
+	min-width: 100px;
+	box-shadow: var(--wsscd-shadow-primary);
+}
+
+.wsscd-cycle-ai-create-modal__create:hover {
+	box-shadow: 0 4px 12px var(--wsscd-color-primary-alpha-25);
+}
+
+/* ==========================================================================
+   Step 2: Progress (loader + phrases)
+   ========================================================================== */
+
+.wsscd-cycle-ai-create-modal__title--progress {
+	margin-top: 0;
+}
+
 .wsscd-cycle-ai-create-modal__loader {
-	margin-bottom: var(--wsscd-spacing-lg, 20px);
+	margin-bottom: var(--wsscd-spacing-lg);
 }
 
 .wsscd-cycle-ai-create-modal__spinner {
 	display: inline-block;
 	width: 40px;
 	height: 40px;
-	border: 3px solid var(--wsscd-color-border, #ddd);
-	border-right-color: transparent;
-	border-radius: 50%;
+	border: 3px solid var(--wsscd-color-border);
+	border-right-color: var(--wsscd-color-primary);
+	border-radius: var(--wsscd-radius-full);
 	animation: wsscd-cycle-ai-spin 0.8s linear infinite;
 }
 
@@ -66,61 +279,87 @@
 	to { transform: rotate(360deg); }
 }
 
-/* ==========================================================================
-   Title & phrase
-   ========================================================================== */
-
-.wsscd-cycle-ai-create-modal__title {
-	margin: 0 0 var(--wsscd-spacing-md, 12px);
-	font-size: 1.125rem;
-	font-weight: 600;
-	color: var(--wsscd-color-text, #1d2327);
+/* Progress phrase: single element, visible by default; .is-leaving fades out before text swap */
+.wsscd-cycle-ai-create-modal__phrase-wrap {
+	margin: 0 0 var(--wsscd-spacing-sm);
+	min-height: 2.5em;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
-/* Wrapper: fixed height, two phrase slots stack and crossfade */
-.wsscd-cycle-ai-create-modal__phrase-wrap {
-	position: relative;
-	min-height: 2.25em;
-	margin: 0 0 var(--wsscd-spacing-xs, 4px);
+.wsscd-cycle-ai-create-modal__step-progress .wsscd-cycle-ai-create-modal__phrase-wrap {
+	visibility: visible;
 }
 
 .wsscd-cycle-ai-create-modal__phrase {
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
 	margin: 0;
-	font-size: 0.9375rem;
+	padding: 0 var(--wsscd-spacing-sm);
+	font-size: var(--wsscd-font-size-medium, 1rem);
+	line-height: 1.4;
 	color: var(--wsscd-color-text-muted, #646970);
 	text-align: center;
-	opacity: 0;
-	transform: translateY(10px);
-	transition: opacity 0.52s cubic-bezier(0.33, 1, 0.68, 1),
-	            transform 0.52s cubic-bezier(0.33, 1, 0.68, 1);
-	will-change: opacity, transform;
-	pointer-events: none;
-}
-
-.wsscd-cycle-ai-create-modal__phrase.is-visible {
 	opacity: 1;
-	transform: translateY(0);
+	visibility: visible;
+	transition: opacity var(--wsscd-transition-slow) cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .wsscd-cycle-ai-create-modal__phrase.is-leaving {
 	opacity: 0;
-	transform: translateY(-10px);
 }
 
 /* ==========================================================================
-   Footer / Cancel
+   Animations
    ========================================================================== */
 
-.wsscd-cycle-ai-create-modal__footer {
-	margin-top: var(--wsscd-spacing-lg, 20px);
+@keyframes wsscd-cycle-ai-overlay-in {
+	from { opacity: 0; }
+	to { opacity: 1; }
 }
 
-.wsscd-cycle-ai-create-modal__cancel {
-	min-width: 100px;
+@keyframes wsscd-cycle-ai-container-in {
+	from {
+		transform: translateY(-24px);
+		opacity: 0;
+	}
+	to {
+		transform: translateY(0);
+		opacity: 1;
+	}
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@media screen and (max-width: 600px) {
+	.wsscd-modal--cycle-ai-create .wsscd-modal__container.wsscd-cycle-ai-create-modal__container {
+		width: 95%;
+		max-width: none;
+		margin: var(--wsscd-spacing-lg);
+		border-radius: var(--wsscd-radius-lg);
+	}
+
+	.wsscd-cycle-ai-create-modal__content {
+		padding: var(--wsscd-padding-section) var(--wsscd-padding-large);
+	}
+
+	.wsscd-cycle-ai-create-modal__step-brief .wsscd-cycle-ai-create-modal__content.wsscd-cycle-ai-create-modal__content--cards {
+		max-height: 65vh;
+	}
+
+	.wsscd-cycle-ai-create-modal__title {
+		font-size: var(--wsscd-font-size-xl);
+	}
+
+	.wsscd-cycle-ai-create-modal__footer {
+		flex-direction: column;
+	}
+
+	.wsscd-cycle-ai-create-modal__footer .wsscd-btn {
+		width: 100%;
+		min-width: 0;
+	}
 }
 
 /* ==========================================================================
@@ -128,13 +367,25 @@
    ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
+	.wsscd-modal--cycle-ai-create .wsscd-modal__overlay {
+		animation: none;
+	}
+
+	.wsscd-modal--cycle-ai-create .wsscd-modal__container.wsscd-cycle-ai-create-modal__container {
+		animation: none;
+	}
+
+	.wsscd-cycle-ai-create-modal__card {
+		transition: none;
+	}
+
+	.wsscd-cycle-ai-create-modal__card:hover {
+		transform: none;
+	}
+
 	.wsscd-cycle-ai-create-modal__phrase {
 		transition: none;
 		will-change: auto;
-	}
-
-	.wsscd-cycle-ai-create-modal__phrase.is-fade-out {
-		transform: none;
 	}
 
 	.wsscd-cycle-ai-create-modal__spinner {

@@ -210,9 +210,12 @@
 			'background-color': ''
 		} );
 
-		$container.removeClass( 'has-error' );
-
-		$field.closest( '.form-field' ).removeClass( 'has-error' );
+		// Only remove .has-error if we added it (skip for display wrappers; see _applyErrorStyling)
+		var isDisplayWrapper = $field.attr( 'data-target' ) && ! $field.is( 'input, select, textarea' );
+		if ( ! isDisplayWrapper ) {
+			$container.removeClass( 'has-error' );
+			$field.closest( '.form-field' ).removeClass( 'has-error' );
+		}
 	},
 
 		/**
@@ -307,23 +310,38 @@
 		 * @returns {jQuery} Field element or empty jQuery object
 		 */
 		_findField: function( fieldName, $context ) {
-			// Try to find field by name first
-			var $field = $context.find( '[name="' + this.escapeSelector( fieldName ) + '"]' );
+			var escaped = this.escapeSelector( fieldName );
 
-			// If not found by name, try by ID
-			if ( ! $field.length ) {
-				$field = $context.find( '#' + this.escapeSelector( fieldName ) );
+			// 1) Display wrapper: element with data-target="fieldName" is the visible control (e.g. time trigger)
+			var $field = $context.find( '[data-target="' + escaped + '"]' ).first();
+			if ( $field.length ) {
+				return $field;
 			}
 
-			// If camelCase field not found, try snake_case conversion
-			// (PHP validation returns camelCase, but DOM uses snake_case)
-			if ( ! $field.length && /[A-Z]/.test( fieldName ) ) {
+			// 2) Try by name (actual form input)
+			$field = $context.find( '[name="' + escaped + '"]' );
+			if ( $field.length ) {
+				return $field;
+			}
+
+			// 3) Try by ID
+			$field = $context.find( '#' + escaped );
+			if ( $field.length ) {
+				return $field;
+			}
+
+			// 4) CamelCase to snake_case (PHP may return camelCase, DOM uses snake_case)
+			if ( /[A-Z]/.test( fieldName ) ) {
 				var snakeName = window.WSSCD && window.WSSCD.Utils && window.WSSCD.Utils.Fields && window.WSSCD.Utils.Fields.toSnakeCase
 					? window.WSSCD.Utils.Fields.toSnakeCase( fieldName )
 					: fieldName.replace( /[A-Z]/g, function( letter ) { return '_' + letter.toLowerCase(); } );
-				$field = $context.find( '[name="' + this.escapeSelector( snakeName ) + '"]' );
+				var snakeEscaped = this.escapeSelector( snakeName );
+				$field = $context.find( '[data-target="' + snakeEscaped + '"]' ).first();
 				if ( ! $field.length ) {
-					$field = $context.find( '#' + this.escapeSelector( snakeName ) );
+					$field = $context.find( '[name="' + snakeEscaped + '"]' );
+				}
+				if ( ! $field.length ) {
+					$field = $context.find( '#' + snakeEscaped );
 				}
 			}
 
@@ -380,9 +398,14 @@
 				$field.attr( 'aria-invalid', 'true' );
 			}
 
-			// Also add error class to container for proper CSS targeting
-			var $container = this._findContainer( $field );
-			$container.addClass( 'has-error' );
+			// Add .has-error to container only for real form controls (input, select, textarea).
+			// Skip for display wrappers (e.g. [data-target]): the wrapper has .error; adding .has-error
+			// would make .has-error input style inner inputs and cause a duplicate border.
+			var isDisplayWrapper = $field.attr( 'data-target' ) && ! $field.is( 'input, select, textarea' );
+			if ( ! isDisplayWrapper ) {
+				var $container = this._findContainer( $field );
+				$container.addClass( 'has-error' );
+			}
 		},
 
 		/**
@@ -827,43 +850,30 @@
 			focusDelay: 10
 		}, options );
 
-		// Find first error field
 		var $firstError = $container.find( '.error[aria-invalid="true"]' ).first();
 
 		if ( ! $firstError.length ) {
-			// Try to find error within radio groups or complex fields
 			$firstError = $container.find( '.has-error' ).first().find( 'input, select, textarea' ).first();
 		}
 
 		if ( $firstError.length ) {
-			// Check if this is a Tom Select field - use wrapper for scroll position
 			var $tomSelectWrapper = $firstError.siblings( '.ts-wrapper' );
-			var $scrollTarget = $tomSelectWrapper.length ? $tomSelectWrapper : $firstError;
-
-			// Calculate scroll position using visible element
-			var scrollTop = $scrollTarget.offset().top - options.scrollOffset;
-
-			// Smooth scroll to field using cached scroll container
-			var $scroller = this._$scrollContainer || $( 'html, body' );
-			$scroller.animate( {
-				scrollTop: scrollTop
-			}, options.animationDuration, function() {
-				// Focus the field after scroll completes
-				setTimeout( function() {
-					if ( $firstError.is( ':visible' ) && ! $firstError.is( ':disabled' ) ) {
-						$firstError.focus();
-
-						// If it's a select element with Tom Select, focus the Tom Select control
-						if ( $firstError.is( 'select' ) && $firstError[0].tomselect ) {
-							$firstError[0].tomselect.focus();
-						}
+			var scrollTarget = ( $tomSelectWrapper.length ? $tomSelectWrapper[0] : $firstError[0] );
+			if ( scrollTarget && scrollTarget.scrollIntoView ) {
+				scrollTarget.scrollIntoView( { behavior: 'smooth', block: 'center' } );
+			}
+			setTimeout( function() {
+				if ( $firstError.is( ':visible' ) && ! $firstError.is( ':disabled' ) ) {
+					if ( $firstError[0] && $firstError[0].focus ) {
+						$firstError[0].focus();
 					}
-				}, options.focusDelay );
-			} );
+					if ( $firstError.is( 'select' ) && $firstError[0].tomselect ) {
+						$firstError[0].tomselect.focus();
+					}
+				}
+			}, options.focusDelay );
 
-			// Announce to screen readers
 			this.announceError( 'Please correct the errors below', 'form' );
-
 			return true;
 		}
 

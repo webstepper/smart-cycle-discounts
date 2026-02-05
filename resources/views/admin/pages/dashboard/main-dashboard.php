@@ -573,7 +573,7 @@ $has_warnings        = in_array( $campaign_health['status'], array( 'fair', 'poo
 
 									<!-- Footer: Actions -->
 									<div class="wsscd-campaign-card-footer">
-										<a href="<?php echo esc_url( admin_url( 'admin.php?page=wsscd-campaigns&action=edit&id=' . $campaign_id ) ); ?>" class="wsscd-card-action wsscd-card-action-edit">
+										<a href="<?php echo esc_url( admin_url( 'admin.php?page=wsscd-campaigns&action=wizard&intent=edit&id=' . $campaign_id ) ); ?>" class="wsscd-card-action wsscd-card-action-edit">
 											<?php WSSCD_Icon_Helper::render( 'edit', array( 'size' => 14 ) ); ?>
 											<?php esc_html_e( 'Edit', 'smart-cycle-discounts' ); ?>
 										</a>
@@ -898,7 +898,7 @@ $has_warnings        = in_array( $campaign_health['status'], array( 'fair', 'poo
 		// Critical issues - prioritize fixing
 		$first_issue = $campaign_health['issues'][0];
 		if ( isset( $first_issue['campaign_id'] ) ) {
-			$primary_action_url  = admin_url( 'admin.php?page=wsscd-campaigns&action=edit&id=' . $first_issue['campaign_id'] );
+			$primary_action_url  = admin_url( 'admin.php?page=wsscd-campaigns&action=wizard&intent=edit&id=' . $first_issue['campaign_id'] );
 			$primary_action_text = __( 'Fix Critical Issues', 'smart-cycle-discounts' );
 			$primary_action_icon = 'warning';
 		}

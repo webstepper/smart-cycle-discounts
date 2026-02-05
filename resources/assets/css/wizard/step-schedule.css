@@ -17,13 +17,6 @@
 .wsscd-wizard-step--schedule {
     --wsscd-schedule-accent: var(--wp-admin-theme-color, var(--wsscd-color-primary));
     --wsscd-schedule-highlight: var(--wp-admin-theme-color-lighter-20, var(--wsscd-color-info-bg));
-
-    /* Date and Time Picker Dimensions */
-    --wsscd-picker-height: 40px;
-    --wsscd-time-picker-width: 120px;
-    --wsscd-calendar-icon-width: 36px;
-    --wsscd-picker-icon-size: var(--wsscd-icon-medium);
-    --wsscd-picker-gap: var(--wsscd-spacing-sm);
 }
 
 /* Layout handled by wizard-fullscreen.css */
@@ -110,21 +103,33 @@
     margin-bottom: var(--wsscd-spacing-lg);
 }
 
-/* Date Box - Card-style containers */
+/* Date Box - Card-style containers; equal height in both states */
+.wsscd-date-range .wsscd-date-box {
+    display: flex;
+    flex-direction: column;
+}
+
 .wsscd-date-box {
     flex: 1;
     min-width: 0;
     background: var(--wsscd-color-background);
     border: var(--wsscd-border-width) solid var(--wsscd-color-border);
     border-radius: var(--wsscd-radius-lg);
-    padding: var(--wsscd-spacing-lg);
+    padding: var(--wsscd-spacing-base);
     position: relative;
     transition: var(--wsscd-transition-all);
 }
 
 .wsscd-date-box:hover {
-    border-color: var(--wsscd-color-border-dark);
     box-shadow: var(--wsscd-shadow-sm);
+}
+
+.wsscd-date-box--start:hover {
+    border-color: var(--wsscd-color-success);
+}
+
+.wsscd-date-box--end:hover {
+    border-color: var(--wsscd-color-primary);
 }
 
 .wsscd-date-box:focus-within {
@@ -137,9 +142,10 @@
     border-left: var(--wsscd-border-width-accent) solid var(--wsscd-color-success);
 }
 
-/* End box - primary accent */
+/* End box - primary accent; same border radius as Start card */
 .wsscd-date-box--end {
     border-left: var(--wsscd-border-width-accent) solid var(--wsscd-color-primary);
+    border-radius: var(--wsscd-radius-lg);
 }
 
 /* Immediate state styling */
@@ -149,7 +155,6 @@
 
 /* Indefinite end date styling */
 .wsscd-date-box--indefinite {
-    background: var(--wsscd-color-surface);
     border-style: dashed;
     border-left-style: solid;
 }
@@ -179,10 +184,27 @@
     font-size: var(--wsscd-icon-small);
 }
 
-/* Immediate State Display */
-.wsscd-date-box__immediate {
+/* Immediate State Display - same min height as scheduled (date + gap + time rows) */
+.wsscd-date-range .wsscd-date-box__immediate {
+    min-height: calc(46px + var(--wsscd-spacing-sm) + 46px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--wsscd-spacing-xs);
     text-align: center;
-    padding: var(--wsscd-spacing-sm) 0;
+}
+
+.wsscd-date-box__immediate-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--wsscd-color-success);
+}
+
+.wsscd-date-box__immediate-icon .wsscd-icon {
+    width: 24px;
+    height: 24px;
 }
 
 .wsscd-date-box__date-text {
@@ -197,12 +219,12 @@
     display: block;
     font-size: var(--wsscd-font-size-small);
     color: var(--wsscd-color-text-muted);
-    margin-top: var(--wsscd-spacing-xs);
 }
 
-/* Scheduled State Inputs */
-.wsscd-date-box__scheduled,
-.wsscd-date-box__content {
+/* Scheduled State Inputs - equal content height for start and end boxes */
+.wsscd-date-range .wsscd-date-box__scheduled,
+.wsscd-date-range .wsscd-date-box__content {
+    min-height: calc(46px + var(--wsscd-spacing-sm) + 46px);
     display: flex;
     flex-direction: column;
     gap: var(--wsscd-spacing-sm);
@@ -213,12 +235,61 @@
     position: relative;
 }
 
+/* Date range: single border on box; inputs/trigger use transparent border so error can turn it red. */
+.wsscd-date-range .wsscd-date-box .wsscd-date-input,
+.wsscd-date-range .wsscd-date-box .wsscd-time-trigger {
+    border: var(--wsscd-border-width) solid transparent;
+    box-shadow: none;
+}
+
+.wsscd-date-range .wsscd-date-box .wsscd-date-input:hover,
+.wsscd-date-range .wsscd-date-box .wsscd-date-input:focus,
+.wsscd-date-range .wsscd-date-box .wsscd-time-trigger:hover:not(.wsscd-time-trigger--disabled),
+.wsscd-date-range .wsscd-date-box .wsscd-time-trigger:focus-within {
+    border-color: transparent;
+    box-shadow: none;
+}
+
+/* Schedule step error: date input border red; time trigger keeps transparent, inner input border red */
+.wsscd-date-range .wsscd-date-box .wsscd-date-input.error {
+    border-color: var(--wsscd-color-danger);
+    box-shadow: none;
+    background-color: transparent;
+}
+
+.wsscd-date-range .wsscd-date-box .wsscd-time-trigger.error {
+    padding: 0;
+    border-color: transparent;
+    box-shadow: none;
+    background-color: transparent;
+}
+
+.wsscd-date-range .wsscd-date-box .wsscd-time-trigger.error .wsscd-time-trigger__input {
+    border: var(--wsscd-border-width) solid var(--wsscd-color-danger);
+}
+
+.wsscd-date-range .wsscd-date-box .wsscd-date-input.error:hover {
+    border-color: var(--wsscd-color-danger);
+    box-shadow: none;
+    background-color: transparent;
+}
+
+.wsscd-date-range .wsscd-date-box .wsscd-time-trigger.error:hover .wsscd-time-trigger__input,
+.wsscd-date-range .wsscd-date-box .wsscd-time-trigger.error:focus-within .wsscd-time-trigger__input {
+    border-color: var(--wsscd-color-danger);
+}
+
+.wsscd-date-range .wsscd-date-box .wsscd-date-input.error:focus {
+    border-color: var(--wsscd-color-danger);
+    box-shadow: none;
+}
+
 /* Date Input */
 .wsscd-date-input {
     width: 100%;
-    height: 44px;
+    height: 46px;
     padding: var(--wsscd-spacing-sm) var(--wsscd-spacing-md);
-    padding-right: 44px;
+    padding-right: 46px;
     font-size: var(--wsscd-font-size-large);
     font-weight: var(--wsscd-font-weight-semibold);
     color: var(--wsscd-color-text);
@@ -245,11 +316,15 @@
     font-style: italic;
 }
 
-/* Calendar Button inside date input */
+.wsscd-date-box--end .wsscd-date-input::placeholder {
+    font-size: var(--wsscd-font-size-small);
+}
+
+/* Calendar Button inside date input (fixed top so it stays aligned when error message appears below) */
 .wsscd-date-box__calendar-btn {
     position: absolute;
     right: var(--wsscd-spacing-xs);
-    top: 50%;
+    top: 23px; /* Half of 46px input height so centered on first row only */
     transform: translateY(-50%);
     width: 36px;
     height: 36px;
@@ -269,57 +344,207 @@
     color: var(--wsscd-color-primary);
 }
 
-/* Time Input */
-.wsscd-time-input {
+/* Time Dropdown (custom time picker: editable input + dropdown button) */
+.wsscd-time-dropdown-wrap {
+    position: relative;
     width: 100%;
-    height: 36px;
-    padding: var(--wsscd-spacing-xs) var(--wsscd-spacing-sm);
-    font-size: var(--wsscd-font-size-base);
-    color: var(--wsscd-color-text);
+}
+
+.wsscd-time-trigger {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    min-height: 46px;
     background: var(--wsscd-color-surface);
     border: var(--wsscd-border-width) solid var(--wsscd-color-border);
-    border-radius: var(--wsscd-radius-sm);
+    border-radius: var(--wsscd-radius-md);
     transition: var(--wsscd-transition-all);
 }
 
-.wsscd-time-input:hover {
+.wsscd-time-trigger:hover:not(.wsscd-time-trigger--disabled) {
     border-color: var(--wsscd-color-border-dark);
 }
 
-.wsscd-time-input:focus {
+.wsscd-time-trigger:focus-within {
     outline: none;
     border-color: var(--wsscd-color-primary);
     box-shadow: var(--wsscd-ring-focus);
 }
 
-.wsscd-time-input:disabled {
+/* When inside date range date box, time trigger has no border (date box provides single border) */
+.wsscd-date-range .wsscd-date-box .wsscd-time-trigger {
+    background: transparent;
+}
+
+.wsscd-time-trigger__input {
+    flex: 1;
+    min-width: 0;
+    height: 46px;
+    padding: var(--wsscd-spacing-sm) var(--wsscd-spacing-md);
+    font-size: var(--wsscd-font-size-base);
+    font-weight: var(--wsscd-font-weight-medium);
+    color: var(--wsscd-color-text);
+    background: transparent;
+    border: none;
+    border-radius: var(--wsscd-radius-md);
+    letter-spacing: 0.02em;
+}
+
+.wsscd-time-trigger__input::placeholder {
+    color: var(--wsscd-color-text-muted);
+}
+
+.wsscd-time-trigger__input:focus {
+    outline: none;
+}
+
+.wsscd-time-trigger__input--placeholder {
+    color: var(--wsscd-color-text-muted);
+    font-weight: var(--wsscd-font-weight-normal);
+}
+
+.wsscd-time-trigger__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    min-width: 36px;
+    height: 46px;
+    flex-shrink: 0;
+    padding: 0;
+    margin: 0 -2px 0 0;
+    background: transparent;
+    border: none;
+    border-radius: var(--wsscd-radius-sm);
+    color: var(--wsscd-color-text-muted);
+    cursor: pointer;
+    transition: var(--wsscd-transition-all);
+}
+
+.wsscd-time-trigger__btn:hover:not(:disabled) {
+    background: var(--wsscd-color-primary-bg);
+    color: var(--wsscd-color-primary);
+}
+
+.wsscd-time-trigger__btn:focus {
+    outline: none;
+    color: var(--wsscd-color-primary);
+}
+
+.wsscd-time-trigger__btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.wsscd-time-trigger__icon {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.85;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.wsscd-time-trigger__btn:hover:not(:disabled) .wsscd-time-trigger__icon {
+    opacity: 1;
+}
+
+.wsscd-time-trigger--open .wsscd-time-trigger__icon {
+    transform: rotate(180deg);
+}
+
+.wsscd-time-trigger--disabled {
     background: var(--wsscd-color-surface-dark);
+}
+
+.wsscd-time-trigger--disabled .wsscd-time-trigger__input {
     color: var(--wsscd-color-text-muted);
     cursor: not-allowed;
 }
 
-/* Error States for Date/Time Inputs */
-.wsscd-date-input.error,
-.wsscd-time-input.error {
-    border-color: var(--wsscd-color-danger);
-    border-width: 2px;
-    background-color: var(--wsscd-alert-danger-bg, rgba(214, 54, 56, 0.05));
+/* Time dropdown panel (positioned in body) */
+.wsscd-time-dropdown-panel {
+    display: none;
+    position: absolute;
+    z-index: 100002;
+    max-height: 220px;
+    overflow-y: auto;
+    padding: var(--wsscd-spacing-xs);
+    background: var(--wsscd-color-surface);
+    border: var(--wsscd-border-width) solid var(--wsscd-color-border);
+    border-radius: var(--wsscd-radius-md);
+    box-shadow: var(--wsscd-shadow-md);
 }
 
-.wsscd-date-input.error:focus,
-.wsscd-time-input.error:focus {
-    border-color: var(--wsscd-color-danger);
-    box-shadow: 0 0 0 2px rgba(214, 54, 56, 0.15);
-}
-
-/* Error messages within date boxes */
-.wsscd-date-box .wsscd-field-error {
-    margin-top: var(--wsscd-spacing-sm);
-    padding: var(--wsscd-spacing-xs) var(--wsscd-spacing-sm);
-    background: var(--wsscd-alert-danger-bg, rgba(214, 54, 56, 0.05));
+.wsscd-time-option {
+    display: block;
+    width: 100%;
+    padding: var(--wsscd-spacing-sm) var(--wsscd-spacing-md);
+    font-size: var(--wsscd-font-size-base);
+    color: var(--wsscd-color-text);
+    background: transparent;
+    border: none;
     border-radius: var(--wsscd-radius-sm);
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.wsscd-time-option:hover {
+    background: var(--wsscd-color-primary-bg);
+    color: var(--wsscd-color-primary);
+}
+
+.wsscd-time-option[aria-selected="true"] {
+    background: var(--wsscd-color-primary-bg);
+    color: var(--wsscd-color-primary);
+    font-weight: var(--wsscd-font-weight-semibold);
+}
+
+.wsscd-time-dropdown-wrap--disabled .wsscd-time-trigger {
+    background: var(--wsscd-color-surface-dark);
+    color: var(--wsscd-color-text-muted);
+}
+
+/* Date/time error (outside date-range): date input border red; time trigger inner input border red */
+.wsscd-date-input.error {
+    border-color: var(--wsscd-color-danger);
+    background-color: var(--wsscd-color-surface);
+}
+
+.wsscd-time-trigger.error {
+    padding: 0;
+    border-color: var(--wsscd-color-border);
+    background-color: var(--wsscd-color-surface);
+}
+
+.wsscd-time-trigger.error .wsscd-time-trigger__input {
+    border: var(--wsscd-border-width) solid var(--wsscd-color-danger);
+}
+
+.wsscd-date-input.error:hover {
+    border-color: var(--wsscd-color-danger);
+}
+
+.wsscd-date-input.error:focus {
+    border-color: var(--wsscd-color-danger);
+    box-shadow: none;
+}
+
+.wsscd-time-trigger.error:hover .wsscd-time-trigger__input,
+.wsscd-time-trigger.error:focus-within .wsscd-time-trigger__input {
+    border-color: var(--wsscd-color-danger);
+}
+
+/* Error message below field: persistent, subtle */
+.wsscd-date-box .wsscd-field-error,
+.wsscd-time-trigger + .wsscd-field-error {
+    margin-top: var(--wsscd-spacing-sm);
     font-size: var(--wsscd-font-size-small);
-    line-height: 1.4;
+    color: var(--wsscd-color-danger);
+    display: block;
 }
 
 /* Clear End Date Button */
@@ -327,11 +552,13 @@
     position: absolute;
     top: var(--wsscd-spacing-sm);
     right: var(--wsscd-spacing-sm);
+    z-index: 1;
     width: 28px;
     height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 0;
     background: transparent;
     border: none;
     border-radius: var(--wsscd-radius-full);
@@ -343,6 +570,14 @@
 .wsscd-date-box__clear:hover {
     background: var(--wsscd-color-danger-bg);
     color: var(--wsscd-color-danger);
+}
+
+.wsscd-date-box__clear .wsscd-icon {
+    display: block;
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    fill: currentColor;
 }
 
 /* Arrow Connector */
@@ -565,14 +800,6 @@
 }
 
 /* ==========================================================================
-   Date/Time Fields Section
-   ========================================================================== */
-
-.wsscd-scheduled-start-fields {
-    margin-top: var(--wsscd-spacing-lg);
-}
-
-/* ==========================================================================
    Modern Flexbox Field Groups
    ========================================================================== */
 
@@ -714,31 +941,6 @@
     font-size: var(--wsscd-picker-icon-size);
     color: var(--wsscd-color-text-muted);
 }
-
-/* Time picker wrapper - Minimalist Design */
-.wsscd-time-picker-wrapper {
-    display: flex;
-    align-items: center;
-    gap: var(--wsscd-picker-gap);
-}
-
-.wsscd-at-label {
-    color: var(--wsscd-color-text-muted);
-    font-size: var(--wsscd-font-size-base);
-}
-
-/* Time picker - match date picker dimensions */
-.wsscd-time-picker {
-    height: var(--wsscd-picker-height);
-    width: var(--wsscd-time-picker-width);
-    max-width: var(--wsscd-time-picker-width);
-}
-
-/* Time picker placeholder state - disabled text input showing --:-- */
-.wsscd-time-picker.wsscd-time-placeholder {
-    color: var(--wsscd-color-text-muted);
-}
-
 
 /* ==========================================================================
    Status Messages and Indicators
@@ -897,16 +1099,6 @@
         flex-direction: column;
         align-items: flex-start;
         gap: 12px;
-    }
-    
-    .wsscd-time-picker-wrapper {
-        width: 100%;
-    }
-    
-    .wsscd-time-picker {
-        flex: 1;
-        max-width: 280px;
-        width: 100%;
     }
 }
 
@@ -1817,7 +2009,7 @@
 
 /* Days validation - error state */
 .wsscd-recurring-days.has-error {
-    border-color: var(--wsscd-color-error, #d63638);
+    border-color: var(--wsscd-color-danger);
 }
 
 /* Days validation - suggestion state */

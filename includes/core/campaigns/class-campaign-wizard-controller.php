@@ -326,16 +326,21 @@ class WSSCD_Campaign_Wizard_Controller extends WSSCD_Abstract_Campaign_Controlle
 
 			$next_step = $this->get_next_step( $current_step, $navigation );
 
-			if ( 'complete' === $next_step ) {
-				$this->complete_wizard();
-				return;
-			}
-
-			// Preserve intent parameter if present
+			// Preserve intent parameter if present.
+			// Note: Server-side "complete" navigation is deprecated; campaign creation
+			// is handled exclusively via AJAX completion (wsscd_complete_wizard).
 			$args   = array( 'saved' => 1 );
 			$intent = $this->get_intent();
 			if ( 'new' === $intent || 'edit' === $intent ) {
 				$args['intent'] = $intent;
+			}
+
+			// If next_step resolves to the legacy "complete" sentinel, redirect back to
+			// the current step instead of invoking a PHP completion flow. The actual
+			// create/update operation is performed by the AJAX Draft Handler.
+			if ( 'complete' === $next_step ) {
+				$this->redirect_to_wizard( $current_step, $args );
+				return;
 			}
 
 			$this->redirect_to_wizard( $next_step, $args );
@@ -584,31 +589,6 @@ class WSSCD_Campaign_Wizard_Controller extends WSSCD_Abstract_Campaign_Controlle
 
 		$session = $this->session->get_all_data();
 		$this->render( $session );
-	}
-
-	/**
-	 * Complete the wizard.
-	 *
-	 * @since    1.0.0
-	 * @return   void
-	 */
-	private function complete_wizard(): void {
-		try {
-			$save_as_draft = $this->should_save_as_draft();
-			$creator       = $this->get_campaign_creator();
-			$result        = $creator->create_from_wizard( $this->session, $save_as_draft );
-
-			if ( ! $result['success'] ) {
-				throw new Exception( $result['error'] );
-			}
-
-			$this->session->clear_session();
-			wp_safe_redirect( $result['redirect_url'] );
-			exit;
-
-		} catch ( Exception $e ) {
-			$this->handle_completion_error( $e );
-		}
 	}
 
 	/**
@@ -1091,12 +1071,21 @@ class WSSCD_Campaign_Wizard_Controller extends WSSCD_Abstract_Campaign_Controlle
 	/**
 	 * Get review step data.
 	 *
+	 * Includes prefilled_from_cycle_ai and show_cycle_ai_regenerate so the review step
+	 * can show "Regenerate with AI" when the campaign was created via Create with AI.
+	 *
 	 * @since    1.0.0
 	 * @return   array    Review step data.
 	 */
 	private function get_review_step_data(): array {
 		$all_session_data = $this->session->get_all_data();
-		return $all_session_data['steps'] ?? array();
+		$steps            = $all_session_data['steps'] ?? array();
+		$steps['_prefilled_from_cycle_ai']   = ! empty( $all_session_data['prefilled_from_cycle_ai'] );
+		$steps['_show_cycle_ai_regenerate']  = $this->feature_gate && $this->feature_gate->can_use_feature( 'cycle_ai_campaign_suggestions' );
+		$steps['_cycle_ai_user_brief']       = isset( $all_session_data['cycle_ai_user_brief'] ) && is_string( $all_session_data['cycle_ai_user_brief'] )
+			? $all_session_data['cycle_ai_user_brief']
+			: '';
+		return $steps;
 	}
 
 	/**

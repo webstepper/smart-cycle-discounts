@@ -44,6 +44,7 @@
 		init: function( wizard, config ) {
 			// Initialize UI components (data will be loaded by wizard orchestrator)
 			this.setupDatePickers();
+			this.initTimeDropdowns();
 			this.initializePresets();
 
 			// Initialize clear button visibility and date box styling based on end_date value
@@ -58,17 +59,11 @@
 				$endDateBox.addClass( 'wsscd-date-box--indefinite' );
 			}
 
-			// Initialize end_time field type and state based on end_date
-			var $endTime = $( '#end_time' );
-			if ( ! endDate ) {
-				// No end date - show placeholder
-				$endTime.attr( 'type', 'text' )
-					.addClass( 'wsscd-time-placeholder' );
-			} else {
-				// Has end date - ensure it's a time input
-				$endTime.attr( 'type', 'time' )
-					.removeClass( 'wsscd-time-placeholder' );
-			}
+			// Initialize end_time dropdown state based on end_date
+			this._syncEndTimeState( !! endDate );
+			// Format initial time display using store time format
+			this._syncTimeTrigger( 'start_time' );
+			this._syncTimeTrigger( 'end_time' );
 
 			// Initialize recurring schedule state from DOM values
 			this.initializeRecurringState();
@@ -144,6 +139,13 @@
 		},
 
 		/**
+		 * Schedule step owns validation for date/time; base skips real-time validation for these.
+		 */
+		getStepValidatedFieldNames: function() {
+			return [ 'start_date', 'end_date', 'start_time', 'end_time' ];
+		},
+
+		/**
 		 * Custom event binding
 		 */
 		onBindEvents: function() {
@@ -163,28 +165,12 @@
 					}
 				}
 
-				// Handle end date changes - enable/disable time field
+				// Handle end date changes - enable/disable end time dropdown and validate recurring
 				if ( 'end' === field ) {
 					$( 'input[name="duration_seconds"]' ).remove();
-
-					var $endTime = $( '#end_time' );
-					if ( selectedDate ) {
-						// End date set - enable time field with default value
-						// Set valid time value FIRST (while still type="text"), then change type
-						var currentValue = $endTime.val();
-						if ( ! currentValue || '' === currentValue || '--:--' === currentValue ) {
-							$endTime.val( '23:59' );
-						}
-						$endTime.attr( 'type', 'time' )
-							.prop( 'disabled', false )
-							.removeClass( 'wsscd-time-placeholder' );
-					} else {
-						// End date cleared - switch to text input showing placeholder
-						$endTime.attr( 'type', 'text' )
-							.prop( 'disabled', true )
-							.val( '--:--' )
-							.addClass( 'wsscd-time-placeholder' );
-					}
+					self._syncEndTimeState( !! selectedDate );
+					self._syncTimeTrigger( 'end_time' );
+					self._closeTimeDropdown();
 
 					// Validate recurring requirements when end_date changes
 					var enableRecurring = $( '#enable_recurring' ).prop( 'checked' );
@@ -202,21 +188,17 @@
 						$endDateBox.addClass( 'wsscd-date-box--indefinite' );
 					}
 
-					// Show error at end of row, but apply red border to date field
 					if ( ! recurringValidation.valid ) {
 						self._showOrClearValidation( recurringValidation, $( '#end_time' ) );
-						// Apply error styling to date field
 						$( '#end_date_display' ).addClass( 'error' ).attr( 'aria-invalid', 'true' );
-						// Open calendar to help user fix the issue
 						$( '#end_date_display' ).datepicker( 'show' );
 					} else {
 						self._showOrClearValidation( recurringValidation, $( '#end_time' ) );
-						// Clear error styling from date field
 						$( '#end_date_display' ).removeClass( 'error' ).attr( 'aria-invalid', 'false' );
 					}
 				}
 
-				// Validate if date is entered
+				// Validate if date is entered (runs for both start and end)
 				if ( selectedDate ) {
 					var startDate = $( '#start_date' ).val();
 					var startTime = $( '#start_time' ).val() || '00:00';
@@ -234,67 +216,27 @@
 				self.updateDurationDisplay();
 			} );
 
-			// Time field changes - validate on blur (when user finishes typing)
-			this.$container.on( 'blur', '#start_time, #end_time', function() {
-				var field = $( this ).attr( 'id' ).replace( '_time', '' );
-				var $input = $( this );
-				var selectedTime = $input.val();
-
-				// Check if field is required based on context
-				var startType = $( 'input[name="start_type"]:checked' ).val() || 'immediate';
-				var endDate = $( '#end_date' ).val();
-
-				// Determine if field is required
-				var isRequired = false;
-				if ( 'start' === field && 'scheduled' === startType ) {
-					isRequired = true;
-				} else if ( 'end' === field && endDate ) {
-					isRequired = true;
-				}
-
-				// If empty and required, show error and persist it
-				if ( ! selectedTime && isRequired ) {
-					if ( window.WSSCD && window.WSSCD.ValidationError ) {
-						var requiredMessage = ( 'start' === field )
-							? 'Start time is required for scheduled campaigns'
-							: 'End time is required when end date is set';
-						WSSCD.ValidationError.show( $input, requiredMessage );
-					}
-					return;
-				}
-
-				// If empty and not required, just clear any error
-				if ( ! selectedTime ) {
-					if ( window.WSSCD && window.WSSCD.ValidationError ) {
-						WSSCD.ValidationError.clear( $input );
-					}
-					return;
-				}
-
-				// Remove duration field when user manually changes end time
-				if ( 'end' === field ) {
-					$( 'input[name="duration_seconds"]' ).remove();
-				}
-
-				// Validate with current DOM values
-				var startDate = $( '#start_date' ).val();
-				var startTime = $( '#start_time' ).val();
-				var endDateVal = $( '#end_date' ).val();
-				var endTime = $( '#end_time' ).val();
-
-				var validation = ( 'start' === field )
-					? self._validateStartTime( startDate, startTime )
-					: self._validateEndTime( endDateVal, endTime, startDate, startTime );
-
-				self._showOrClearValidation( validation, $input );
-			} );
-
-			// Time field changes - update state on change
+			// Time field changes - update state and run validation immediately so notification appears/disappears right away
 			this.$container.on( 'change', '#start_time, #end_time', function() {
 				var field = $( this ).attr( 'id' ).replace( '_time', '' );
 				var selectedTime = $( this ).val();
 				self.handleTimeChange( field, selectedTime );
 				self.updateDurationDisplay();
+
+				var startDate = $( '#start_date' ).val();
+				var startTime = $( '#start_time' ).val() || '00:00';
+				var endDate = $( '#end_date' ).val();
+				var endTime = $( '#end_time' ).val() || '23:59';
+				var startValidation = self._validateStartTime( startDate, startTime );
+				var endValidation = self._validateEndTime( endDate, endTime, startDate, startTime );
+				if ( ! startValidation.valid ) {
+					self._showOrClearValidation( startValidation, $( '#start_time' ) );
+				} else if ( ! endValidation.valid ) {
+					self._showOrClearValidation( endValidation, $( '#end_time' ) );
+				} else {
+					self._showOrClearValidation( { valid: true }, $( '#start_time' ) );
+					self._showOrClearValidation( { valid: true }, $( '#end_time' ) );
+				}
 			} );
 
 			// Start type changes - toggle buttons
@@ -313,11 +255,9 @@
 				e.preventDefault();
 				$( '#end_date' ).val( '' );
 				$( '#end_date_display' ).val( '' );
-				var $endTime = $( '#end_time' );
-				$endTime.attr( 'type', 'text' )
-					.prop( 'disabled', true )
-					.val( '--:--' )
-					.addClass( 'wsscd-time-placeholder' );
+				self._syncEndTimeState( false );
+				self._syncTimeTrigger( 'end_time' );
+				self._closeTimeDropdown();
 
 				// Update end date box styling
 				self.$container.find( '.wsscd-date-box--end' ).addClass( 'wsscd-date-box--indefinite' );
@@ -390,7 +330,7 @@
 				} else {
 					// Clear validation errors when switching to one-time
 					if ( window.WSSCD && window.WSSCD.ValidationError ) {
-						WSSCD.ValidationError.clear( $( '#end_time' ) );
+						WSSCD.ValidationError.clear( self.$container.find( '.wsscd-time-trigger[data-target="end_time"]' ) );
 					}
 					$( '#end_date_display' ).removeClass( 'error' ).attr( 'aria-invalid', 'false' );
 				}
@@ -1088,61 +1028,43 @@
 					return;
 				}
 
-				var startDate, endDate, startTime, endTime, durationSeconds;
-				durationSeconds = calculatedSeconds;
-
-				var startType = $( 'input[name="start_type"]:checked' ).val();
-
-				// Determine start date based on schedule type and existing values
-				if ( 'scheduled' === startType ) {
-					// Use existing start date if already set
-					var existingStart = $( '#start_date' ).val();
-					var existingTime = $( '#start_time' ).val();
-
-					if ( existingStart ) {
-						// Keep user's chosen start date
-						startDate = new Date( existingStart );
-						startTime = existingTime || '00:00';
-					} else {
-						// No start date set yet, default to tomorrow
+				// Use current start (do not change start type, start date, or start time)
+				var startType = this.$container.find( 'input[name="start_type"]:checked' ).val() || 'immediate';
+				var startDateStr = $( '#start_date' ).val();
+				var startTimeStr = $( '#start_time' ).val() || '00:00';
+				var startDate;
+				if ( 'scheduled' === startType && startDateStr ) {
+					startDate = new Date( startDateStr + ' ' + startTimeStr );
+					if ( isNaN( startDate.getTime() ) ) {
 						startDate = new Date();
-						startDate.setDate( startDate.getDate() + 1 );
-						startTime = '00:00';
+						startDate.setHours( 0, 0, 0, 0 );
 					}
 				} else {
-					// "immediate" mode or no selection - use today
 					startDate = new Date();
-					startTime = '00:00';
-
-					// If no schedule type selected yet, default to "scheduled" for better UX
-					if ( !startType ) {
-						startDate.setDate( startDate.getDate() + 1 );
-						$( 'input[name="start_type"][value="scheduled"]' ).prop( 'checked', true ).trigger( 'change' );
-					}
+					startDate.setHours( 0, 0, 0, 0 );
 				}
 
-				// Calculate end date based on preset duration
-				endDate = new Date( startDate );
+				// Calculate end date from current start + preset duration
+				var endDate = new Date( startDate );
 				if ( 'days' === preset.unit ) {
-					endDate.setDate( endDate.getDate() + preset.duration );
+					if ( preset.duration === 1 ) {
+						endDate.setDate( endDate.getDate() );
+					} else {
+						endDate.setDate( endDate.getDate() + preset.duration );
+					}
 				} else if ( 'weeks' === preset.unit ) {
 					endDate.setDate( endDate.getDate() + ( preset.duration * 7 ) );
 				} else if ( 'hours' === preset.unit ) {
 					endDate.setTime( endDate.getTime() + ( preset.duration * 60 * 60 * 1000 ) );
 				}
 
-				var existingEndTime = $( '#end_time' ).val();
-				endTime = existingEndTime || this.getDefaultEndTime();
+				var endTime = $( '#end_time' ).val() || this.getDefaultEndTime();
 
-			// CRITICAL: Format dates in LOCAL timezone, NOT UTC
-			// Do NOT use toISOString() as it converts to UTC and shifts the date
-			// User picks "Jan 15" → we send "Jan 15" (their timezone)
+				// Presets only set end date and end time (and duration); leave start unchanged
 				var dates = {
-					startDate: this.formatDateLocal( startDate ),
 					endDate: this.formatDateLocal( endDate ),
-					startTime: startTime,
 					endTime: endTime,
-					durationSeconds: durationSeconds
+					durationSeconds: calculatedSeconds
 				};
 
 				this.updateDateTimeFields( dates );
@@ -1152,6 +1074,12 @@
 				}
 
 				this.updateDurationDisplay();
+
+				// Scroll to date selection so user sees the applied dates and times
+				var $dateRange = this.$container.find( '#wsscd-schedule-date-range' );
+				if ( $dateRange.length && $dateRange[0].scrollIntoView ) {
+					$dateRange[0].scrollIntoView( { behavior: 'smooth', block: 'start' } );
+				}
 
 				// Emit event
 				$( document ).trigger( 'wsscd:schedule:preset:applied', preset );
@@ -1175,9 +1103,14 @@
 			}
 			if ( dates.startTime !== undefined ) {
 				$( '#start_time' ).val( dates.startTime );
+				this._syncTimeTrigger( 'start_time' );
 			}
 			if ( dates.endTime !== undefined ) {
 				$( '#end_time' ).val( dates.endTime );
+				this._syncTimeTrigger( 'end_time' );
+			}
+			if ( dates.endDate !== undefined && dates.endTime !== undefined ) {
+				this._syncEndTimeState( true );
 			}
 			if ( dates.durationSeconds !== undefined ) {
 				var $durationField = $( 'input[name="duration_seconds"]' );
@@ -1193,8 +1126,19 @@
 				}
 			}
 
-			// Trigger change events to update any dependent UI
-			$( '#start_date, #end_date, #start_time, #end_time' ).trigger( 'change' );
+			// Trigger change only on fields that were updated (avoids e.g. preset apply switching start type)
+			if ( dates.startDate !== undefined ) {
+				$( '#start_date' ).trigger( 'change' );
+			}
+			if ( dates.endDate !== undefined ) {
+				$( '#end_date' ).trigger( 'change' );
+			}
+			if ( dates.startTime !== undefined ) {
+				$( '#start_time' ).trigger( 'change' );
+			}
+			if ( dates.endTime !== undefined ) {
+				$( '#end_time' ).trigger( 'change' );
+			}
 		},
 
 		/**
@@ -1210,6 +1154,11 @@
 			if ( startType ) {
 				this.handleStartTypeChange( startType );
 			}
+
+			// Sync time dropdown display to store format (hidden inputs already populated)
+			this._syncEndTimeState( !! $( '#end_date' ).val() );
+			this._syncTimeTrigger( 'start_time' );
+			this._syncTimeTrigger( 'end_time' );
 
 			// Update UI state for recurring options
 			var enableRecurring = this.getPropertyValue( data, [ 'enableRecurring' ] );
@@ -1357,6 +1306,352 @@
 		},
 
 		/**
+		 * Get store time format (WordPress time_format, e.g. 'H:i' or 'g:i A')
+		 * @return {string}
+		 */
+		_getTimeFormat: function() {
+			return ( window.wsscdWizardData && window.wsscdWizardData.timeFormat ) ||
+				( window.wsscdSettings && window.wsscdSettings.timeFormat ) ||
+				'H:i';
+		},
+
+		/**
+		 * Check if store uses 12-hour format
+		 * @return {boolean}
+		 */
+		_isTimeFormat12h: function() {
+			var f = this._getTimeFormat();
+			return /[gGaAh]/.test( f );
+		},
+
+		/**
+		 * Format 24h HH:mm to display string using store format
+		 * @param {string} hhmm 24h time 'HH:mm'
+		 * @return {string}
+		 */
+		_formatTime24ToDisplay: function( hhmm ) {
+			if ( ! hhmm || hhmm === '' ) {
+				return '';
+			}
+			var parts = hhmm.split( ':' );
+			var h = parseInt( parts[0], 10 );
+			var m = parseInt( parts[1], 10 );
+			if ( isNaN( h ) || isNaN( m ) ) {
+				return hhmm;
+			}
+			if ( this._isTimeFormat12h() ) {
+				var hour12 = h % 12;
+				if ( hour12 === 0 ) {
+					hour12 = 12;
+				}
+				var ampm = h < 12 ? 'AM' : 'PM';
+				return ( hour12 < 10 ? '0' : '' ) + hour12 + ':' + ( m < 10 ? '0' : '' ) + m + ' ' + ampm;
+			}
+			return ( h < 10 ? '0' : '' ) + h + ':' + ( m < 10 ? '0' : '' ) + m;
+		},
+
+		/**
+		 * Parse user input to 24h HH:mm. Accepts 24h (14:30), 12h (2:30 PM), etc.
+		 * @param {string} str
+		 * @return {string|null} 'HH:mm' or null if invalid
+		 */
+		_parseTimeTo24: function( str ) {
+			if ( ! str || typeof str !== 'string' ) {
+				return null;
+			}
+			str = str.trim();
+			if ( str === '' ) {
+				return null;
+			}
+			// 4 digits as HHmm (e.g. 2222 -> 22:22, 0930 -> 09:30)
+			var match4 = str.match( /^(\d{4})$/ );
+			if ( match4 ) {
+				var digits = match4[1];
+				var h = parseInt( digits.substring( 0, 2 ), 10 );
+				var m = parseInt( digits.substring( 2, 4 ), 10 );
+				if ( h >= 0 && h <= 23 && m >= 0 && m <= 59 ) {
+					return ( h < 10 ? '0' : '' ) + h + ':' + ( m < 10 ? '0' : '' ) + m;
+				}
+			}
+			// 24h: HH:mm or H:mm
+			var match24 = str.match( /^(\d{1,2}):(\d{2})$/ );
+			if ( match24 ) {
+				var h24 = parseInt( match24[1], 10 );
+				var m24 = parseInt( match24[2], 10 );
+				if ( h24 >= 0 && h24 <= 23 && m24 >= 0 && m24 <= 59 ) {
+					return ( h24 < 10 ? '0' : '' ) + h24 + ':' + ( m24 < 10 ? '0' : '' ) + m24;
+				}
+			}
+			// 12h: 1:30 PM, 01:30 am, 1:30pm
+			var match12 = str.match( /^(\d{1,2}):(\d{2})\s*(am|pm)?$/i );
+			if ( match12 ) {
+				var h12 = parseInt( match12[1], 10 );
+				var m12 = parseInt( match12[2], 10 );
+				var ampm = ( match12[3] || '' ).toLowerCase();
+				if ( h12 >= 1 && h12 <= 12 && m12 >= 0 && m12 <= 59 ) {
+					var h24 = h12 === 12 ? ( ampm === 'am' ? 0 : 12 ) : ( h12 + ( ampm === 'pm' ? 12 : 0 ) );
+					return ( h24 < 10 ? '0' : '' ) + h24 + ':' + ( m12 < 10 ? '0' : '' ) + m12;
+				}
+			}
+			return null;
+		},
+
+		/**
+		 * Build list of time options in 24h HH:mm, 15-minute steps
+		 * @return {string[]}
+		 */
+		_getTimeOptions: function() {
+			var options = [];
+			var h, m, hStr, mStr;
+			for ( h = 0; h < 24; h++ ) {
+				for ( m = 0; m < 60; m += 15 ) {
+					hStr = h < 10 ? '0' + h : String( h );
+					mStr = m < 10 ? '0' + m : String( m );
+					options.push( hStr + ':' + mStr );
+				}
+			}
+			return options;
+		},
+
+		/**
+		 * Initialize time dropdowns (custom time picker for start_time / end_time)
+		 */
+		initTimeDropdowns: function() {
+			var self = this;
+			var options = this._getTimeOptions();
+			var $panel = $( '#wsscd-time-dropdown-panel' );
+			if ( ! $panel.length ) {
+				$panel = $( '<div id="wsscd-time-dropdown-panel" class="wsscd-time-dropdown-panel" role="listbox" aria-label="' + ( window.wp && wp.i18n ? wp.i18n.__( 'Choose time', 'smart-cycle-discounts' ) : 'Choose time' ) + '" tabindex="-1"></div>' );
+				$panel.hide().appendTo( document.body );
+			}
+			this._timeDropdownPanel = $panel;
+			this._timeDropdownTarget = null;
+
+			// Open dropdown when clicking the trigger container, dropdown button, or focusing/clicking the input
+			this.$container.on( 'click', '.wsscd-time-trigger__btn', function( e ) {
+				e.preventDefault();
+				var $trigger = $( this ).closest( '.wsscd-time-trigger' );
+				if ( $trigger.hasClass( 'wsscd-time-trigger--disabled' ) ) {
+					return;
+				}
+				var target = $trigger.data( 'target' );
+				if ( target ) {
+					self._openTimeDropdown( $trigger, target, options );
+				}
+			} );
+			this.$container.on( 'click', '.wsscd-time-trigger__input', function( e ) {
+				if ( $( this ).prop( 'disabled' ) ) {
+					return;
+				}
+				var $trigger = $( this ).closest( '.wsscd-time-trigger' );
+				var target = $trigger.data( 'target' );
+				if ( target ) {
+					self._openTimeDropdown( $trigger, target, options );
+				}
+			} );
+
+			// Live time format: 2 digits -> "22:", 3 digits -> "22:3", 4 digits -> parse and commit (e.g. 22:22)
+			this.$container.on( 'input', '.wsscd-time-trigger__input', function() {
+				var $input = $( this );
+				if ( $input.prop( 'disabled' ) ) {
+					return;
+				}
+				var raw = $input.val().replace( /\D/g, '' );
+				var len = raw.length;
+				if ( len <= 1 ) {
+					return;
+				}
+				if ( len === 2 ) {
+					$input.val( raw + ':' );
+					return;
+				}
+				if ( len === 3 ) {
+					$input.val( raw.substring( 0, 2 ) + ':' + raw.substring( 2, 3 ) );
+					return;
+				}
+				if ( len >= 4 ) {
+					raw = raw.substring( 0, 4 );
+					var parsed = self._parseTimeTo24( raw );
+					if ( parsed ) {
+						var target = $input.closest( '.wsscd-time-trigger' ).data( 'target' );
+						if ( target ) {
+							$( '#' + target ).val( parsed ).trigger( 'change' );
+							$input.val( self._formatTime24ToDisplay( parsed ) );
+						}
+					} else {
+						$input.val( raw.substring( 0, 2 ) + ':' + raw.substring( 2, 4 ) );
+					}
+				}
+			} );
+
+			// Manual entry: on blur parse, commit, and validate
+			this.$container.on( 'blur', '.wsscd-time-trigger__input', function() {
+				var $input = $( this );
+				if ( $input.prop( 'disabled' ) ) {
+					return;
+				}
+				var $trigger = $input.closest( '.wsscd-time-trigger' );
+				var target = $trigger.data( 'target' );
+				if ( ! target ) {
+					return;
+				}
+				var field = target.replace( '_time', '' );
+				var raw = $input.val();
+				var parsed = self._parseTimeTo24( raw );
+				var $hidden = $( '#' + target );
+				var startType = $( 'input[name="start_type"]:checked' ).val() || 'immediate';
+				var endDate = $( '#end_date' ).val();
+				var isRequired = ( 'start' === field && 'scheduled' === startType ) || ( 'end' === field && endDate );
+
+				if ( parsed ) {
+					$hidden.val( parsed ).trigger( 'change' );
+					$input.val( self._formatTime24ToDisplay( parsed ) );
+					// Run time validation (e.g. end before start, past time)
+					var startDate = $( '#start_date' ).val();
+					var startTime = $( '#start_time' ).val();
+					var endTimeVal = $( '#end_time' ).val();
+					var validation = ( 'start' === field )
+						? self._validateStartTime( startDate, startTime )
+						: self._validateEndTime( endDate, endTimeVal, startDate, startTime );
+					self._showOrClearValidation( validation, $hidden );
+				} else if ( raw.trim() !== '' ) {
+					// Invalid format: revert to current hidden value
+					var current = $hidden.val();
+					$input.val( current ? self._formatTime24ToDisplay( current ) : '' );
+				}
+			} );
+
+			$( document ).on( 'click.wsscdTimeDropdown', function( e ) {
+				if ( ! $( e.target ).closest( '.wsscd-time-trigger, #wsscd-time-dropdown-panel' ).length ) {
+					self._closeTimeDropdown();
+				}
+			} );
+		},
+
+		/**
+		 * Return a function that returns true if the given time (HH:mm) is in the past for the given date (YYYY-MM-DD).
+		 * @param {string} dateStr Date in YYYY-MM-DD (empty treated as today)
+		 * @return {function(string): boolean}
+		 */
+		_getPastTimeChecker: function( dateStr ) {
+			var now = new Date();
+			var m = now.getMonth() + 1;
+			var d = now.getDate();
+			var todayStr = now.getFullYear() + '-' + ( m < 10 ? '0' : '' ) + m + '-' + ( d < 10 ? '0' : '' ) + d;
+			var h = now.getHours();
+			var min = now.getMinutes();
+			var currentTimeStr = ( h < 10 ? '0' : '' ) + h + ':' + ( min < 10 ? '0' : '' ) + min;
+			if ( ! dateStr || dateStr === '' ) {
+				dateStr = todayStr;
+			}
+			if ( dateStr < todayStr ) {
+				return function() { return true; };
+			}
+			if ( dateStr > todayStr ) {
+				return function() { return false; };
+			}
+			return function( timeStr ) {
+				return timeStr < currentTimeStr;
+			};
+		},
+
+		/**
+		 * Open time dropdown for a given trigger and field
+		 * @param {jQuery} $trigger .wsscd-time-trigger container
+		 * @param {string} targetFieldId e.g. 'start_time' or 'end_time'
+		 * @param {string[]} options 24h HH:mm options
+		 */
+		_openTimeDropdown: function( $trigger, targetFieldId, options ) {
+			var self = this;
+			var $input = $( '#' + targetFieldId );
+			var currentVal = $input.val() || ( 'end_time' === targetFieldId ? '23:59' : '00:00' );
+			var $panel = this._timeDropdownPanel;
+			this._timeDropdownTarget = targetFieldId;
+
+			var dateStr = ( 'start_time' === targetFieldId ) ? $( '#start_date' ).val() : $( '#end_date' ).val();
+			var isPast = this._getPastTimeChecker( dateStr );
+			var availableOptions = options.filter( function( val ) { return ! isPast( val ); } );
+
+			$panel.empty().attr( 'aria-activedescendant', '' );
+			var i, val, displayText, $opt, isSelected;
+			for ( i = 0; i < availableOptions.length; i++ ) {
+				val = availableOptions[i];
+				displayText = this._formatTime24ToDisplay( val );
+				isSelected = val === currentVal;
+				$opt = $( '<button type="button" class="wsscd-time-option" role="option" data-value="' + val + '"' + ( isSelected ? ' aria-selected="true"' : '' ) + '>' + displayText + '</button>' );
+				$opt.on( 'click', function() {
+					var v = $( this ).attr( 'data-value' );
+					$( '#' + self._timeDropdownTarget ).val( v ).trigger( 'change' );
+					self._syncTimeTrigger( self._timeDropdownTarget );
+					self._closeTimeDropdown();
+				} );
+				$panel.append( $opt );
+			}
+
+			$panel.show().css( { top: '', left: '' } );
+			var triggerOffset = $trigger.offset();
+			$panel.css( {
+				position: 'absolute',
+				top: ( triggerOffset.top + $trigger.outerHeight() + 2 ),
+				left: triggerOffset.left,
+				width: Math.max( $trigger.outerWidth(), 80 ) + 'px'
+			} );
+			$trigger.addClass( 'wsscd-time-trigger--open' ).find( '.wsscd-time-trigger__input' ).attr( 'aria-expanded', 'true' );
+		},
+
+		/**
+		 * Close time dropdown and sync trigger aria-expanded
+		 */
+		_closeTimeDropdown: function() {
+			if ( this._timeDropdownPanel && this._timeDropdownPanel.length ) {
+				this._timeDropdownPanel.hide().empty();
+			}
+			this.$container.find( '.wsscd-time-trigger' ).removeClass( 'wsscd-time-trigger--open' );
+			this.$container.find( '.wsscd-time-trigger__input' ).attr( 'aria-expanded', 'false' );
+			this._timeDropdownTarget = null;
+		},
+
+		/**
+		 * Sync trigger input display from hidden input value (store format)
+		 * @param {string} fieldId 'start_time' or 'end_time'
+		 */
+		_syncTimeTrigger: function( fieldId ) {
+			var $hidden = $( '#' + fieldId );
+			var $wrap = $hidden.closest( '.wsscd-time-dropdown-wrap' );
+			var $displayInput = $wrap.find( '.wsscd-time-trigger__input' );
+			var val = $hidden.val();
+			var display = val && val !== '' ? this._formatTime24ToDisplay( val ) : '';
+			$displayInput.val( display );
+		},
+
+		/**
+		 * Sync end time dropdown state when end date is set or cleared
+		 * @param {boolean} hasEndDate
+		 */
+		_syncEndTimeState: function( hasEndDate ) {
+			var $hidden = $( '#end_time' );
+			var $wrap = $hidden.closest( '.wsscd-time-dropdown-wrap' );
+			var $trigger = $wrap.find( '.wsscd-time-trigger' );
+			var $displayInput = $wrap.find( '.wsscd-time-trigger__input' );
+			var $btn = $wrap.find( '.wsscd-time-trigger__btn' );
+			if ( hasEndDate ) {
+				if ( ! $hidden.val() || $hidden.val() === '' ) {
+					$hidden.val( '23:59' );
+				}
+				$trigger.removeClass( 'wsscd-time-trigger--disabled' );
+				$displayInput.prop( 'disabled', false ).removeClass( 'wsscd-time-trigger__input--placeholder' ).val( this._formatTime24ToDisplay( $hidden.val() ) );
+				$btn.prop( 'disabled', false );
+				$wrap.removeClass( 'wsscd-time-dropdown-wrap--disabled' );
+			} else {
+				$hidden.val( '' );
+				$trigger.addClass( 'wsscd-time-trigger--disabled' );
+				$displayInput.prop( 'disabled', true ).addClass( 'wsscd-time-trigger__input--placeholder' ).val( '' );
+				$btn.prop( 'disabled', true );
+				$wrap.addClass( 'wsscd-time-dropdown-wrap--disabled' );
+			}
+		},
+
+		/**
 		 * Initialize presets
 		 */
 		initializePresets: function() {
@@ -1372,12 +1667,11 @@
 			var presets = WSSCD.Modules.ScheduleConfig.presets.durations;
 
 			$.each( presets, function( key, preset ) {
+				var dayLabel = preset.days === 1 ? '1 day' : preset.days + ' days';
 				var $presetCard = $( '<div>', {
 					'class': 'wsscd-timeline-preset',
 					'data-preset-type': key,
-					'data-days': preset.days,
-					'role': 'button',
-					'tabindex': '0'
+					'data-days': preset.days
 				} );
 
 				var $button = $( '<button>', {
@@ -1394,7 +1688,7 @@
 					} ).html( iconHtml ),
 					$( '<span>', {
 						'class': 'wsscd-timeline-preset__duration',
-						'text': preset.days + ' days'
+						'text': dayLabel
 					} ),
 					$( '<span>', {
 						'class': 'wsscd-timeline-preset__name',
@@ -1404,12 +1698,13 @@
 
 				var $tooltip = $( '<span>', {
 					'class': 'wsscd-timeline-preset__tooltip',
-					'text': 'Click to set campaign duration to ' + preset.days + ' days'
+					'text': 'Click to set campaign duration to ' + dayLabel
 				} );
 
 				$presetCard.append( $button, $tooltip );
 
-				$presetCard.on( 'click', function() {
+				$button.on( 'click', function( e ) {
+					e.preventDefault();
 					self.applyPreset( {
 						id: key,
 						duration: preset.days,
@@ -1417,11 +1712,28 @@
 					} );
 
 					$presetsContainer.find( '.wsscd-timeline-preset' ).removeClass( 'wsscd-timeline-preset--active' );
-					$( this ).addClass( 'wsscd-timeline-preset--active' );
+					$presetCard.addClass( 'wsscd-timeline-preset--active' );
 				} );
 
 				$presetsContainer.append( $presetCard );
 			} );
+
+			// Mark active preset when current duration matches a preset (e.g. when editing)
+			var startVal = $( '#start_date' ).val();
+			var endVal = $( '#end_date' ).val();
+			if ( startVal && endVal ) {
+				try {
+					var start = new Date( startVal );
+					var end = new Date( endVal );
+					var diffMs = end - start;
+					var currentDays = Math.round( diffMs / ( 1000 * 60 * 60 * 24 ) );
+					if ( currentDays > 0 ) {
+						$presetsContainer.find( '.wsscd-timeline-preset[data-days="' + currentDays + '"]' ).addClass( 'wsscd-timeline-preset--active' );
+					}
+				} catch ( err ) {
+					// Ignore date parse errors
+				}
+			}
 
 			$( document ).trigger( 'wsscd:schedule:presets:loaded', presets );
 		},
@@ -1702,26 +2014,39 @@
 		}
 
 		if ( ! validation.valid ) {
-			// Map hidden field IDs to visible display field IDs
 			var fieldId = validation.field;
+			var $errorField;
 			if ( 'start_date' === fieldId || 'end_date' === fieldId ) {
 				fieldId = fieldId + '_display';
-			}
-
-			var $errorField = this.$container.find( '#' + fieldId );
-			if ( $errorField.length ) {
-				WSSCD.ValidationError.show( $errorField, validation.message );
+				$errorField = this.$container.find( '#' + fieldId );
+				if ( $errorField.length ) {
+					WSSCD.ValidationError.show( $errorField, validation.message );
+				}
+			} else if ( 'start_time' === fieldId || 'end_time' === fieldId ) {
+				$errorField = this.$container.find( '.wsscd-time-trigger[data-target="' + fieldId + '"]' );
+				if ( $errorField.length ) {
+					WSSCD.ValidationError.show( $errorField, validation.message );
+				}
+			} else {
+				$errorField = this.$container.find( '#' + fieldId );
+				if ( $errorField.length ) {
+					WSSCD.ValidationError.show( $errorField, validation.message );
+				}
 			}
 		} else {
-			// Clear from both the input and its display counterpart
 			WSSCD.ValidationError.clear( $input );
 
-			// Also clear from display field if applicable
 			var inputId = $input.attr( 'id' );
 			if ( inputId && ( 'start_date' === inputId || 'end_date' === inputId ) ) {
 				var $displayField = this.$container.find( '#' + inputId + '_display' );
 				if ( $displayField.length ) {
 					WSSCD.ValidationError.clear( $displayField );
+				}
+			}
+			if ( inputId && ( 'start_time' === inputId || 'end_time' === inputId ) ) {
+				var $trigger = this.$container.find( '.wsscd-time-trigger[data-target="' + inputId + '"]' );
+				if ( $trigger.length ) {
+					WSSCD.ValidationError.clear( $trigger );
 				}
 			}
 		}
@@ -2295,8 +2620,7 @@
 		}
 
 		if ( errors.length > 0 ) {
-			// Convert errors array to object format for ValidationError.showMultiple
-			// Map hidden field IDs to visible display field IDs
+			// Map to field IDs ValidationError can resolve (date display inputs; time uses data-target in context)
 			var errorObject = {};
 			errors.forEach( function( error ) {
 				var fieldId = error.field;
@@ -2306,25 +2630,24 @@
 				errorObject[fieldId] = error.message;
 			} );
 
-			// Use wizard validation pattern - handles inline errors and auto-scroll to field
 			if ( window.WSSCD && window.WSSCD.ValidationError ) {
 				WSSCD.ValidationError.showMultiple( errorObject, this.$container, {
 					clearFirst: true,
-					showSummary: false, // No banner for single field errors - just scroll to field
+					showSummary: false,
 					focusFirstError: true
 				} );
 
-				// If recurring validation error, apply red border to date field and open calendar
 				if ( errorObject.end_time && ! recurringValidation.valid ) {
 					$( '#end_date_display' ).addClass( 'error' ).attr( 'aria-invalid', 'true' );
-					// Small delay to ensure error display is complete before opening calendar
 					setTimeout( function() {
 						$( '#end_date_display' ).datepicker( 'show' );
 					}, 100 );
 				}
 			}
 		} else {
-			// Clear any error styling from date field when validation passes
+			if ( window.WSSCD && window.WSSCD.ValidationError ) {
+				WSSCD.ValidationError.clearAll( this.$container );
+			}
 			$( '#end_date_display' ).removeClass( 'error' ).attr( 'aria-invalid', 'false' );
 		}
 

@@ -272,7 +272,7 @@
 					'<td>' + this.formatCurrency( campaign.revenue || 0 ) + '</td>' +
 					'<td>' + this.formatNumber( campaign.conversions || 0 ) + '</td>' +
 					'<td>' +
-					'<a href="admin.php?page=wsscd-campaigns&action=edit&id=' + campaign.id + '" class="button button-small">Edit</a>' +
+					'<a href="admin.php?page=wsscd-campaigns&action=wizard&intent=edit&id=' + campaign.id + '" class="button button-small">Edit</a>' +
 					'</td>' +
 					'</tr>';
 

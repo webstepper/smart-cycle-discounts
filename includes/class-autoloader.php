@@ -113,7 +113,6 @@ class WSSCD_Autoloader {
 		'WSSCD_Campaigns_Page'               => 'admin/pages/class-campaigns-page.php',
 		'WSSCD_Abstract_Campaign_Controller' => 'core/campaigns/abstract-campaign-controller.php',
 		'WSSCD_Campaign_List_Controller'     => 'core/campaigns/class-campaign-list-controller.php',
-		'WSSCD_Campaign_Edit_Controller'     => 'core/campaigns/class-campaign-edit-controller.php',
 		'WSSCD_Campaign_View_Renderer'       => 'core/campaigns/class-campaign-view-renderer.php',
 		'WSSCD_Campaign_Wizard_Controller'   => 'core/campaigns/class-campaign-wizard-controller.php',
 		'WSSCD_Campaign_Action_Handler'      => 'core/campaigns/class-campaign-action-handler.php',

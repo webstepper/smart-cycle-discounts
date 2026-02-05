@@ -286,7 +286,11 @@ class WSSCD_Campaigns_List_Table extends WP_List_Table {
 			$recurring_handler  = $this->container->get( 'recurring_handler' );
 			$recurring_settings = $recurring_handler->get_recurring_settings( $campaign_id );
 
-			if ( $recurring_settings ) {
+			// Only show recurring badge if campaign actually has recurring enabled (or is a child occurrence).
+			// Require get_enable_recurring() for parent campaigns so one-time campaigns with a stale recurring row do not show the badge.
+			$is_recurring_child = $recurring_settings && ! empty( $recurring_settings['parent_campaign_id'] );
+			$is_recurring_parent = $recurring_settings && empty( $recurring_settings['parent_campaign_id'] ) && $campaign->get_enable_recurring();
+			if ( $is_recurring_child || $is_recurring_parent ) {
 				if ( empty( $recurring_settings['parent_campaign_id'] ) ) {
 					// Parent campaign with recurring enabled
 					if ( ! empty( $recurring_settings['is_active'] ) ) {
@@ -421,8 +425,15 @@ class WSSCD_Campaigns_List_Table extends WP_List_Table {
 					}
 
 					if ( $is_expired ) {
-						// Show disabled activate button with tooltip for expired campaigns
-						$end_date_display = wp_date( 'F j, Y g:i A', $ends_at->getTimestamp() );
+						// Show disabled activate button with tooltip for expired campaigns (display in campaign timezone)
+						$end_tz   = $campaign->get_timezone();
+						$end_tz   = is_string( $end_tz ) && '' !== trim( $end_tz ) ? $end_tz : wp_timezone_string();
+						try {
+							$end_tz_obj = new DateTimeZone( $end_tz );
+							$end_date_display = $ends_at instanceof DateTime ? ( clone $ends_at )->setTimezone( $end_tz_obj )->format( 'F j, Y g:i A' ) : wp_date( 'F j, Y g:i A', $ends_at->getTimestamp() );
+						} catch ( Exception $e ) {
+							$end_date_display = wp_date( 'F j, Y g:i A', $ends_at->getTimestamp() );
+						}
 						$actions['activate'] = sprintf(
 							'<span class="disabled" title="%s" style="color: #a0a5aa; cursor: not-allowed;">%s</span>',
 							esc_attr( sprintf(
@@ -476,7 +487,7 @@ class WSSCD_Campaigns_List_Table extends WP_List_Table {
 				);
 			}
 
-			if ( $recurring_settings && empty( $recurring_settings['parent_campaign_id'] ) && ! empty( $recurring_settings['is_active'] ) ) {
+			if ( $recurring_settings && $campaign->get_enable_recurring() && empty( $recurring_settings['parent_campaign_id'] ) && ! empty( $recurring_settings['is_active'] ) ) {
 				if ( $this->capability_manager->current_user_can( 'edit_campaign', $campaign_id ) ) {
 					$actions['stop_recurring'] = sprintf(
 						'<a href="%s" class="stop-recurring" onclick="return confirm(\'%s\')">%s</a>',
@@ -647,22 +658,33 @@ class WSSCD_Campaigns_List_Table extends WP_List_Table {
 		$campaign   = $item;
 		$start_date = $campaign->get_starts_at();
 		$end_date   = $campaign->get_ends_at();
+		$tz_string  = $campaign->get_timezone();
+		if ( ! is_string( $tz_string ) || '' === trim( $tz_string ) ) {
+			$tz_string = wp_timezone_string();
+		}
+		try {
+			$tz = new DateTimeZone( $tz_string );
+		} catch ( Exception $e ) {
+			$tz = new DateTimeZone( wp_timezone_string() );
+		}
 
 		$output = '';
 
 		if ( $start_date ) {
-			$output .= sprintf(
+			$start_display = $start_date instanceof DateTime ? ( clone $start_date )->setTimezone( $tz )->format( 'M j, Y g:i A' ) : wp_date( 'M j, Y g:i A', $start_date->getTimestamp() );
+			$output       .= sprintf(
 				'<strong>%s:</strong> %s<br>',
 				__( 'Start', 'smart-cycle-discounts' ),
-				wp_date( 'M j, Y g:i A', $start_date->getTimestamp() )
+				$start_display
 			);
 		}
 
 		if ( $end_date ) {
-			$output .= sprintf(
+			$end_display = $end_date instanceof DateTime ? ( clone $end_date )->setTimezone( $tz )->format( 'M j, Y g:i A' ) : wp_date( 'M j, Y g:i A', $end_date->getTimestamp() );
+			$output     .= sprintf(
 				'<strong>%s:</strong> %s',
 				__( 'End', 'smart-cycle-discounts' ),
-				wp_date( 'M j, Y g:i A', $end_date->getTimestamp() )
+				$end_display
 			);
 		} else {
 			$output .= sprintf(
@@ -674,30 +696,6 @@ class WSSCD_Campaigns_List_Table extends WP_List_Table {
 
 		return $output;
 	}
-
-	/**
-	 * Render performance column.
-	 *
-	 * @since    1.0.0
-	 * @param    WSSCD_Campaign $campaign    Campaign object.
-	 * @return   string                       Performance column HTML.
-	 */
-
-	/**
-	 * Render created column.
-	 *
-	 * @since    1.0.0
-	 * @param    WSSCD_Campaign $campaign    Campaign object.
-	 * @return   string                       Created column HTML.
-	 */
-
-	/**
-	 * Render priority column.
-	 *
-	 * @since    1.0.0
-	 * @param    WSSCD_Campaign $campaign    Campaign object.
-	 * @return   string                       Priority column HTML.
-	 */
 
 	/**
 	 * Render health column.

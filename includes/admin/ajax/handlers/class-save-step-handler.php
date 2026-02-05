@@ -318,6 +318,9 @@ class WSSCD_Save_Step_Handler extends WSSCD_Abstract_Ajax_Handler {
 	 * Validate step data.
 	 *
 	 * Single validation path - no auto-save bypass for security.
+	 * For the review step, this performs a full cross-step validation using the
+	 * current wizard session data (campaign_complete context) to ensure the
+	 * campaign is valid before launch/draft completion.
 	 *
 	 * @since    1.0.0
 	 * @param    string $step    Step name.
@@ -325,10 +328,6 @@ class WSSCD_Save_Step_Handler extends WSSCD_Abstract_Ajax_Handler {
 	 * @return   true|WP_Error      True if valid, error otherwise.
 	 */
 	private function validate_step_data( $step, &$data ) {
-		if ( 'review' === $step ) {
-			return true;
-		}
-
 		// Strip PRO features for free users before validation.
 		$this->strip_pro_features_for_free_users( $step, $data );
 
@@ -445,8 +444,9 @@ class WSSCD_Save_Step_Handler extends WSSCD_Abstract_Ajax_Handler {
 					);
 				}
 
-				$all_data = $this->state_service->get_all_data();
-				return WSSCD_Validation::validate( $all_data, 'campaign_complete' );
+				$all_data   = $this->state_service->get_all_data();
+				$step_data  = isset( $all_data['steps'] ) && is_array( $all_data['steps'] ) ? $all_data['steps'] : $all_data;
+				return WSSCD_Validation::validate( $step_data, 'campaign_complete' );
 
 			default:
 				return new WP_Error( 'unknown_step', __( 'Unknown step', 'smart-cycle-discounts' ) );

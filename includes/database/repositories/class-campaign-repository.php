@@ -810,14 +810,18 @@ class WSSCD_Campaign_Repository extends WSSCD_Base_Repository {
 			}
 		}
 
-		// Save recurring configuration if enabled
-		if ( $result && $campaign->get_id() && ! empty( $campaign->get_enable_recurring() ) ) {
-			$recurring_config = $campaign->get_recurring_config();
-			if ( ! empty( $recurring_config ) && is_array( $recurring_config ) ) {
-				$this->save_recurring_config( $campaign->get_id(), $recurring_config );
+		// Save recurring configuration if enabled; remove recurring row when disabled.
+		if ( $result && $campaign->get_id() ) {
+			if ( ! empty( $campaign->get_enable_recurring() ) ) {
+				$recurring_config = $campaign->get_recurring_config();
+				if ( ! empty( $recurring_config ) && is_array( $recurring_config ) ) {
+					$this->save_recurring_config( $campaign->get_id(), $recurring_config );
 
-				// Trigger recurring handler to generate occurrence cache
-				do_action( 'wsscd_campaign_saved', $campaign->get_id(), $campaign->to_array() );
+					// Trigger recurring handler to generate occurrence cache
+					do_action( 'wsscd_campaign_saved', $campaign->get_id(), $campaign->to_array() );
+				}
+			} else {
+				$this->delete_recurring_config( $campaign->get_id() );
 			}
 		}
 
@@ -891,6 +895,38 @@ class WSSCD_Campaign_Repository extends WSSCD_Base_Repository {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Remove recurring configuration for a campaign (when recurring is disabled).
+	 *
+	 * @since  1.0.0
+	 * @param  int $campaign_id Campaign ID.
+	 * @return void
+	 */
+	private function delete_recurring_config( int $campaign_id ): void {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Delete from plugin's custom table.
+		$wpdb->delete(
+			$wpdb->prefix . 'wsscd_campaign_recurring',
+			array(
+				'campaign_id'        => $campaign_id,
+				'parent_campaign_id' => 0,
+			),
+			array( '%d', '%d' )
+		);
+
+		// Reset campaign_type so the campaign is no longer treated as recurring (otherwise it would be filtered out of active campaigns).
+		$table = $wpdb->prefix . 'wsscd_campaigns';
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table from trusted prefix; reset type after removing recurring.
+		$wpdb->update(
+			$table,
+			array( 'campaign_type' => 'standard' ),
+			array( 'id' => $campaign_id ),
+			array( '%s' ),
+			array( '%d' )
+		);
 	}
 
 	/**

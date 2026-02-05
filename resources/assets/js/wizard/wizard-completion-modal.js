@@ -66,7 +66,10 @@
 			successClass: 'is-success',
 			errorClass: 'is-error',
 			activeClass: 'is-active',
-			redirectDelay: 3000
+			redirectDelay: 3000,
+			successTransitionDelay: 300,
+			focusDelay: 50,
+			retryCooldown: 2000
 		},
 
 		/**
@@ -78,10 +81,31 @@
 			if ( this.initialized ) {
 				return;
 			}
-
+			this.applyPluginConfig();
 			this.createModal();
 			this.bindEvents();
 			this.initialized = true;
+		},
+
+		/**
+		 * Apply config from localized plugin data (wsscdWizardData.completionModal).
+		 *
+		 * @since 1.0.0
+		 */
+		applyPluginConfig: function() {
+			var data = ( window.wsscdWizardData && window.wsscdWizardData.completionModal ) || {};
+			if ( data.redirectDelay !== undefined ) {
+				this.config.redirectDelay = Number( data.redirectDelay ) || 3000;
+			}
+			if ( data.successTransitionDelay !== undefined ) {
+				this.config.successTransitionDelay = Number( data.successTransitionDelay ) || 300;
+			}
+			if ( data.focusDelay !== undefined ) {
+				this.config.focusDelay = Number( data.focusDelay ) || 50;
+			}
+			if ( data.retryCooldown !== undefined ) {
+				this.config.retryCooldown = Number( data.retryCooldown ) || 2000;
+			}
 		},
 
 		/**
@@ -149,6 +173,24 @@
 					window.location.href = url;
 				}
 			} );
+
+			// Handle close button (when no view URL)
+			this.$modal.on( 'click', '.wsscd-completion-close', function( e ) {
+				e.preventDefault();
+				self.hide();
+			} );
+
+			// ESC key closes error modal (success auto-redirects)
+			$( document ).on( 'keydown.wsscdCompletionModal', function( e ) {
+				if ( e.key !== 'Escape' ) {
+					return;
+				}
+				if ( self.$modal && self.$modal.hasClass( self.config.activeClass ) ) {
+					if ( self.$modal.hasClass( self.config.errorClass ) ) {
+						self.hide();
+					}
+				}
+			} );
 		},
 
 		/**
@@ -164,12 +206,11 @@
 				return;
 			}
 
-			// Debug logging
-
 			this.completionData = data;
 
 			var campaignName = data.campaignName || '';
 			var isEditMode = data.isEditMode || false;
+			var campaignsUrl = ( window.wsscdWizardData && window.wsscdWizardData.campaignsUrl ) || '';
 
 			// Build success message based on create vs. edit mode
 			var message;
@@ -187,17 +228,16 @@
 			var campaignId = data.campaignId;
 			var viewUrl = redirectUrl;
 
-
-			// If we have a campaign ID but no redirect URL, construct view URL (fallback)
-			if ( campaignId && ! viewUrl ) {
-				viewUrl = '/wp-admin/admin.php?page=wsscd-campaigns&action=view&id=' + campaignId;
+			// If we have a campaign ID but no redirect URL, build view URL from plugin config
+			if ( campaignId && ! viewUrl && campaignsUrl ) {
+				viewUrl = campaignsUrl + ( campaignsUrl.indexOf( '?' ) !== -1 ? '&' : '?' ) + 'action=view&id=' + campaignId;
 			}
 
 			// Show the modal overlay with active class
 			self.$modal.addClass( self.config.activeClass );
 			$( 'body' ).addClass( 'wsscd-completion-active' );
 
-			// Transition to success state
+			// Transition to success state after configured delay
 			setTimeout( function() {
 				self.$modal
 					.removeClass( self.config.loadingClass )
@@ -229,8 +269,15 @@
 				self.$modal.find( '.wsscd-completion-message' ).text( statusMessage );
 
 				if ( viewUrl ) {
-					var viewButton = '<a href="' + viewUrl + '" class="button button-primary wsscd-completion-view">View Campaign</a>';
+					var safeUrl = String( viewUrl ).replace( /&/g, '&amp;' ).replace( /"/g, '&quot;' ).replace( /</g, '&lt;' ).replace( />/g, '&gt;' );
+					var viewButton = '<a href="' + safeUrl + '" class="wsscd-button wsscd-button--primary wsscd-completion-view">View Campaign</a>';
 					self.$modal.find( '.wsscd-completion-actions' ).html( viewButton );
+					self.$modal.find( '.wsscd-completion-view' ).focus();
+				} else {
+					// No view URL: show Close so user can dismiss (e.g. missing campaignsUrl or redirect)
+					var closeBtn = '<button type="button" class="wsscd-button wsscd-button--primary wsscd-completion-close">Close</button>';
+					self.$modal.find( '.wsscd-completion-actions' ).html( closeBtn );
+					self.$modal.find( '.wsscd-completion-close' ).focus();
 				}
 
 				self.$modal.find( '.wsscd-completion-status' ).text( message + ' ' + statusMessage );
@@ -241,7 +288,7 @@
 						window.location.href = redirectUrl;
 					}, self.config.redirectDelay );
 				}
-			}, 300 );
+			}, self.config.successTransitionDelay );
 		},
 
 		/**
@@ -280,9 +327,14 @@
 
 				self.$modal.find( '.wsscd-completion-message' ).text( errorMessage );
 
-				var buttons = '<button type="button" class="button button-primary wsscd-completion-retry">Retry</button>' +
-					'<button type="button" class="button wsscd-completion-cancel">Cancel</button>';
+				var buttons = '<button type="button" class="wsscd-button wsscd-button--primary wsscd-completion-retry">Retry</button>' +
+					'<button type="button" class="wsscd-button wsscd-button--secondary wsscd-completion-cancel">Cancel</button>';
 				self.$modal.find( '.wsscd-completion-actions' ).html( buttons );
+
+				// Focus Retry button for keyboard users
+				setTimeout( function() {
+					self.$modal.find( '.wsscd-completion-retry' ).focus();
+				}, self.config.focusDelay );
 
 				self.$modal.find( '.wsscd-completion-status' ).text( 'Error: ' + errorMessage );
 			}, 300 );
@@ -313,7 +365,7 @@
 			var self = this;
 			setTimeout( function() {
 				self.retryInProgress = false;
-			}, 2000 );
+			}, self.config.retryCooldown );
 		},
 
 		/**
@@ -354,7 +406,7 @@
 		 * @since 1.0.0
 		 */
 		destroy: function() {
-			$( document ).off( 'wsscd:wizard:completed wsscd:wizard:error' );
+			$( document ).off( 'wsscd:wizard:completed wsscd:wizard:error keydown.wsscdCompletionModal' );
 
 			if ( this.$modal ) {
 				this.$modal.off( 'click' );

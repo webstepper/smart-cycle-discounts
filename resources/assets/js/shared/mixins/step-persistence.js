@@ -109,7 +109,6 @@
 					return this._createErrorResponse( 'Field definitions not available' );
 				}
 
-				// Verify required dependencies are loaded (fail loudly if missing)
 				if ( ! window.WSSCD || ! window.WSSCD.Utils || ! window.WSSCD.Utils.Fields ) {
 					console.error( '[StepPersistence] CRITICAL: WSSCD.Utils.Fields not loaded for step:', this.stepName );
 					console.error( '[StepPersistence] This indicates a script dependency issue. Check script-registry.php.' );
@@ -117,15 +116,12 @@
 				}
 
 				var fieldDefs = window.WSSCD.FieldDefinitions.getStepFields( this.stepName ) || {};
-
 				var data = {};
 
-				// Collect each field
 				for ( var fieldName in fieldDefs ) {
 					if ( Object.prototype.hasOwnProperty.call( fieldDefs, fieldName ) ) {
 						var fieldDef = fieldDefs[fieldName];
 
-						// Skip fields that don't meet their conditional visibility requirements
 						var isVisible = this._isFieldVisible( fieldDef, data );
 
 						if ( ! isVisible ) {
@@ -133,7 +129,6 @@
 						}
 
 						if ( 'complex' === fieldDef.type ) {
-							// Handle complex fields using handler
 							data[fieldName] = this.collectComplexField( fieldDef );
 						} else {
 							// WSSCD.Utils.Fields is guaranteed to be loaded (verified above)
@@ -156,12 +151,9 @@
 					}
 				}
 
-				// Return sanitized field data in camelCase format
-				// AJAX router will automatically convert camelCase to snake_case for PHP backend
 				return sanitizedData;
 			} catch ( error ) {
 				console.error( '[StepPersistence] Error collecting data:', error );
-				// Return error indicator instead of stale data
 				return { _error: true, _message: error.message || 'Unknown error collecting data' };
 			}
 		},
@@ -451,12 +443,9 @@
 					return deferred.promise();
 				}
 
-				// CRITICAL FIX: Use direct validateData to prevent recursion
-				// This prevents the circular call: StepPersistence.validateStep -> ValidationManager.validateStep -> StepPersistence.validateStep
 				var validation = this.validateData( data );
 
 				if ( !validation.valid ) {
-					// Use ValidationError component for proper error display
 					this.showValidationErrors( validation.errors );
 				}
 
@@ -639,7 +628,15 @@
 				this._complexFieldHandlers[handlerPath] = handler;
 			}
 
-			// Try to resolve from global scope if path contains dots (e.g., 'WSSCD.Modules.Discounts.FreeShipping')
+			// Resolve known global handlers directly so we never hit retry loop (e.g. script load order).
+			if ( !handler && handlerPath === 'WSSCD.Modules.Discounts.FreeShipping' ) {
+				if ( window.WSSCD && window.WSSCD.Modules && window.WSSCD.Modules.Discounts && window.WSSCD.Modules.Discounts.FreeShipping ) {
+					handler = window.WSSCD.Modules.Discounts.FreeShipping;
+					this._complexFieldHandlers[handlerPath] = handler;
+				}
+			}
+
+			// Try to resolve from global scope if path contains dots
 			if ( !handler && -1 !== handlerPath.indexOf( '.' ) ) {
 				if ( window.WSSCD && window.WSSCD.Utils && 'function' === typeof window.WSSCD.Utils.get ) {
 					handler = window.WSSCD.Utils.get( window, handlerPath, null );
@@ -729,14 +726,14 @@
 		 */
 		_processComplexFieldQueue: function( handlerPath ) {
 			var self = this;
-			var maxRetries = 50; // 50 retries * 100ms = 5 seconds max wait
+			var maxRetries = 50;
 
 			if ( !this.isComplexFieldReady( handlerPath ) ) {
 				this._complexFieldRetries = this._complexFieldRetries || {};
 				this._complexFieldRetries[handlerPath] = ( this._complexFieldRetries[handlerPath] || 0 ) + 1;
 
 				if ( this._complexFieldRetries[handlerPath] > maxRetries ) {
-					console.error( '❌ [StepPersistence] Max retries reached for handler:', handlerPath );
+					console.warn( '[StepPersistence] Handler not available after retries:', handlerPath );
 					if ( this._complexFieldQueue && this._complexFieldQueue[handlerPath] ) {
 						delete this._complexFieldQueue[handlerPath];
 					}
@@ -744,7 +741,6 @@
 					return;
 				}
 
-				// Try again later
 				setTimeout( function() {
 					self._processComplexFieldQueue( handlerPath );
 				}, 100 );

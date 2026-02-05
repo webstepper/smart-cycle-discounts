@@ -45,15 +45,9 @@
 			startDateDisplay: '#start_date_display',
 			endDateDisplay: '#end_date_display',
 
-			// Time inputs
-			startTimeDisplay: '#start_time_display',
-			endTimeDisplay: '#end_time_display',
-			startTimeHour: '#start_time_hour',
-			startTimeMinute: '#start_time_minute',
-			startTimeAmPm: '#start_time_ampm',
-			endTimeHour: '#end_time_hour',
-			endTimeMinute: '#end_time_minute',
-			endTimeAmPm: '#end_time_ampm',
+			// Time inputs (hidden values; display is custom dropdown)
+			startTime: '#start_time',
+			endTime: '#end_time',
 
 			// UI elements
 			clearEndDate: '.wsscd-clear-end-date',
@@ -66,7 +60,7 @@
 			announcements: '#wsscd-schedule-announcements',
 
 			// Preset elements
-			presetsContainer: '#wsscd-smart-presets',
+			presetsContainer: '#wsscd-preset-recommendations',
 			presetGrid: '#wsscd-preset-recommendations',
 
 			// Schedule type elements
@@ -108,17 +102,13 @@
 			minDurationMinutes: 5, // 5 minutes minimum for testing purposes
 			maxScheduleMonths: 12,
 			dateFormat: 'YYYY-MM-DD',
-			timeFormat: '12h' // or '24h'
+			timeFormat: '24h' // Backend value format (HH:mm); display uses WordPress time_format
 		},
 
-		// Default Values
+		// Default Values (24h HH:mm)
 		defaults: {
-			startTimeHour: '12',
-			startTimeMinute: '00',
-			startTimeAmPm: 'AM',
-			endTimeHour: '11',
-			endTimeMinute: '59',
-			endTimeAmPm: 'PM',
+			startTime: '00:00',
+			endTime: '23:59',
 			timezone: getTimezone()
 		},
 

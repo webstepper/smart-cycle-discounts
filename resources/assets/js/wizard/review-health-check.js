@@ -64,6 +64,38 @@
 					window.WSSCD.Wizard.Navigation.navigateToStep( targetStep );
 				}
 			} );
+
+			// Regenerate with AI (review step when campaign was prefilled by Cycle AI)
+			$( document ).on( 'click', '#wsscd-regenerate-with-ai-btn', function( e ) {
+				e.preventDefault();
+				var $btn = $( this );
+				if ( $btn.prop( 'disabled' ) || ! window.WSSCD || ! window.WSSCD.Ajax || ! window.WSSCD.Ajax.post ) {
+					return;
+				}
+				var raw = $btn.data( 'userBrief' );
+				var userBrief = ( typeof raw === 'string' && raw ) ? raw.trim() : '';
+				var payload = userBrief ? { userBrief: userBrief } : {};
+				$btn.prop( 'disabled', true ).text( $btn.data( 'loading-text' ) || 'Generating new suggestion…' );
+				window.WSSCD.Ajax.post( 'wsscd_cycle_ai_create_full_campaign', payload, { timeout: 90000 } )
+					.then( function( response ) {
+						var url = response && response.redirectUrl ? response.redirectUrl : '';
+						if ( url ) {
+							window.location.href = url;
+						} else {
+							$btn.prop( 'disabled', false ).text( $btn.data( 'default-text' ) || 'Regenerate with AI' );
+							if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.NotificationService ) {
+								window.WSSCD.Shared.NotificationService.error( 'No redirect URL received.' );
+							}
+						}
+					} )
+					.catch( function( error ) {
+						$btn.prop( 'disabled', false ).text( $btn.data( 'default-text' ) || 'Regenerate with AI' );
+						var msg = error && error.message ? error.message : 'Could not generate a new suggestion. Please try again.';
+						if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.NotificationService ) {
+							window.WSSCD.Shared.NotificationService.error( msg );
+						}
+					} );
+			} );
 		},
 
 		/**

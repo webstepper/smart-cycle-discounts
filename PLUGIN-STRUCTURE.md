@@ -287,10 +287,9 @@
 | `class-campaign-action-handler.php` | 434 |
 | `class-campaign-calculator.php` | 431 |
 | `class-campaign-event-scheduler.php` | 353 |
-| `class-campaign-edit-controller.php` | 271 |
 | `abstract-campaign-controller.php` | 152 |
 
-**Folder Total: 13 files, 9359 LOC**
+**Folder Total: 12 files, 9088 LOC**
 
 ### 📁 `includes/core/cron/`
 

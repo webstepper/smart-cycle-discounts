@@ -200,7 +200,7 @@ class WSSCD_Campaign_Overview_Panel {
 			$tz       = new \DateTimeZone( $timezone );
 		}
 
-		// Convert UTC to site timezone for display (only if values are DateTime instances)
+		// Convert UTC to campaign timezone for display (only if values are DateTime instances)
 		if ( $starts_at instanceof \DateTime ) {
 			$starts_at = clone $starts_at;
 			$starts_at->setTimezone( $tz );
@@ -895,17 +895,26 @@ class WSSCD_Campaign_Overview_Panel {
 
 						$data['pattern_label'] = $pattern_map[ $data['recurrence_pattern'] ] ?? ucfirst( $data['recurrence_pattern'] );
 
-						// Format next occurrence
+						// Format next occurrence (stored in UTC; parse as UTC for correct timestamp)
 						if ( $data['next_occurrence_date'] ) {
-							$next_timestamp                    = strtotime( $data['next_occurrence_date'] );
-							$data['next_occurrence_formatted'] = wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $next_timestamp );
-							$data['next_occurrence_relative']  = human_time_diff( current_time( 'timestamp' ), $next_timestamp );
+							try {
+								$next_dt         = new \DateTime( $data['next_occurrence_date'], new \DateTimeZone( 'UTC' ) );
+								$next_timestamp  = $next_dt->getTimestamp();
+								$data['next_occurrence_formatted'] = wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $next_timestamp );
+								$data['next_occurrence_relative']  = human_time_diff( current_time( 'timestamp' ), $next_timestamp );
+							} catch ( \Exception $e ) {
+								$data['next_occurrence_formatted'] = $data['next_occurrence_date'];
+								$data['next_occurrence_relative']  = '';
+							}
 						}
 
-						// Format end date
-						if ( $data['recurrence_end_date'] ) {
-							$end_timestamp                    = strtotime( $data['recurrence_end_date'] );
-							$data['recurrence_end_formatted'] = wp_date( get_option( 'date_format' ), $end_timestamp );
+						// Format end date only if it is a valid calendar date (avoid 0000-00-00 → -0001-11-30).
+						if ( ! empty( $data['recurrence_end_date'] ) && preg_match( '/^(\d{4})-(\d{2})-(\d{2})/', $data['recurrence_end_date'], $m ) ) {
+							$y = (int) $m[1];
+							if ( $y >= 1970 && $y <= 2100 ) {
+								$end_timestamp                    = strtotime( $data['recurrence_end_date'] );
+								$data['recurrence_end_formatted'] = wp_date( get_option( 'date_format' ), $end_timestamp );
+							}
 						}
 
 						// Get child campaigns count

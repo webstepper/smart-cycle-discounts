@@ -311,25 +311,24 @@
 			var currentStep = this.getCurrentStep();
 			var nextStep = this.getNextStep( currentStep );
 
-			if ( nextStep ) {
-				this.validateCurrentStep( currentStep ).done( function( validationResult ) {
+			if ( ! nextStep ) {
+				console.warn( '[WSSCD Navigation] No next step found for:', currentStep );
+				this.setNavigationState( false );
+				return;
+			}
+
+			setTimeout( function() {
+				self.validateCurrentStep( currentStep ).done( function( validationResult ) {
 					if ( validationResult && validationResult.isValid ) {
 						self.navigateToStep( nextStep, currentStep, validationResult.formData );
 					} else {
-						// Validation failed - re-enable buttons
 						self.setNavigationState( false );
 					}
-					// Validation errors are shown by ValidationError component automatically
 				} ).fail( function( error ) {
 					console.error( '[WSSCD Navigation] Validation failed:', error );
-					// Re-enable buttons on validation failure
 					self.setNavigationState( false );
 				} );
-			} else {
-				console.warn( '[WSSCD Navigation] No next step found for:', currentStep );
-				// No next step - re-enable buttons
-				this.setNavigationState( false );
-			}
+			}, 0 );
 		},
 
 		/**
@@ -345,24 +344,18 @@
 		validateCurrentStep: function( stepName ) {
 			var self = this;
 
-			// CRITICAL: Check PRO features FIRST before field validation
-			// This prevents confusing "field required" errors for locked PRO features
 			var formData = this.collectStepData( stepName );
+
 			var proCheck = this.checkProFeatures( stepName, formData );
 
 			if ( proCheck.blocked ) {
-				// Modal is already shown by checkProFeatures()
-				// Block validation without showing error notification
 				return $.Deferred().resolve( { isValid: false, formData: formData } ).promise();
 			}
 
-			// Try to get step orchestrator
 			if ( WSSCD.Wizard && WSSCD.Wizard.Orchestrator && WSSCD.Wizard.Orchestrator.getStepInstance ) {
 				var stepOrchestrator = WSSCD.Wizard.Orchestrator.getStepInstance( stepName );
 
-				// If orchestrator exists and has validateStep, use it
 				if ( stepOrchestrator && 'function' === typeof stepOrchestrator.validateStep ) {
-					// Wrap orchestrator validation to include formData in result
 					return stepOrchestrator.validateStep().then( function( validationResult ) {
 						return { isValid: validationResult, formData: formData };
 					} );

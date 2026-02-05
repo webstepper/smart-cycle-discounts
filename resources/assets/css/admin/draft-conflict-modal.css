@@ -144,6 +144,11 @@
 	color: var(--wsscd-color-secondary);
 }
 
+/* Modal-level info variant (used via modal classes) */
+.wsscd-modal.wsscd-modal--info .wsscd-modal__icon {
+	color: var(--wsscd-color-secondary);
+}
+
 /* ==========================================================================
    Modal Title
    ========================================================================== */

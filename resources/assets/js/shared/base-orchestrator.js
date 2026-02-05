@@ -289,21 +289,41 @@
 		},
 
 		/**
+		 * Field names this step validates itself (not via ValidationManager).
+		 * Override in steps that own validation for specific fields (e.g. schedule date/time).
+		 * Base will skip real-time validation for these so step controls show/clear.
+		 *
+		 * @returns {string[]} Field names to skip in setupFieldValidation
+		 */
+		getStepValidatedFieldNames: function() {
+			return [];
+		},
+
+		/**
 		 * Setup real-time field validation
-		 * Standard implementation for all steps - 150ms debounce
+		 * Standard implementation for all steps - 150ms debounce.
+		 * Skips fields returned by getStepValidatedFieldNames() so steps can own their validation.
 		 */
 		setupFieldValidation: function() {
 			var self = this;
 
-			// Skip if container not available
 			if ( ! this.$container || ! this.$container.length ) {
 				return;
 			}
 
-			// Use event delegation for better performance
+			var stepHandled = this.getStepValidatedFieldNames();
+			var stepHandledSet = {};
+			for ( var i = 0; i < stepHandled.length; i++ ) {
+				stepHandledSet[ stepHandled[i] ] = true;
+			}
+
 			this.$container.on( 'input change', ':input[name]', function() {
 				var $field = $( this );
 				var fieldName = this.name || this.id;
+
+				if ( stepHandledSet[ fieldName ] ) {
+					return;
+				}
 
 				if ( self._validationTimers[fieldName] ) {
 					clearTimeout( self._validationTimers[fieldName] );

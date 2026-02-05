@@ -513,6 +513,37 @@
 		}
 	};
 
+	/**
+	 * Extract error message from API response (success/data/message or error code/message).
+	 * Use for consistent error display in admin (tools, overview panel, etc.).
+	 *
+	 * @param {Object} response Response object (may be null).
+	 * @param {string} fallback Fallback message if none found.
+	 * @return {string} Error message.
+	 */
+	WSSCD.Shared.extractErrorMessage = function( response, fallback ) {
+		var defaultFallback = fallback || 'An error occurred. Please try again.';
+		if ( ! response ) {
+			return defaultFallback;
+		}
+		if ( response.message && 'string' === typeof response.message ) {
+			return response.message;
+		}
+		if ( response.data && response.data.message && 'string' === typeof response.data.message ) {
+			return response.data.message;
+		}
+		if ( response.error && typeof response.error === 'object' && response.error.message && 'string' === typeof response.error.message ) {
+			return response.error.message;
+		}
+		if ( response.error && Array.isArray( response.error ) && response.error.length > 0 ) {
+			return response.error[0].message || response.error[0];
+		}
+		if ( response.error && 'string' === typeof response.error ) {
+			return response.error;
+		}
+		return defaultFallback;
+	};
+
 	$( document ).ready( function() {
 		WSSCD.Shared.NotificationService.init();
 	} );

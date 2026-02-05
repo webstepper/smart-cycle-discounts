@@ -200,7 +200,7 @@ class WSSCD_Campaign_Expiration_Notices {
 				<ul>
 					<?php foreach ( $expired_campaigns as $campaign ) : ?>
 						<li>
-							<a href="<?php echo esc_url( admin_url( 'admin.php?page=wsscd-campaigns&action=edit&id=' . $campaign['id'] ) ); ?>">
+							<a href="<?php echo esc_url( admin_url( 'admin.php?page=wsscd-campaigns&action=wizard&intent=edit&id=' . $campaign['id'] ) ); ?>">
 								<?php echo esc_html( $campaign['name'] ); ?>
 							</a>
 						</li>

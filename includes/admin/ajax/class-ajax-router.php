@@ -332,8 +332,8 @@ class WSSCD_Ajax_Router {
 					WSSCD_AJAX_Response::success( $result );
 				}
 			}
-		} catch ( Exception $e ) {
-			// Debug: Log exception.
+		} catch ( Throwable $e ) {
+			// Catch both Exception and Error (PHP 7+) so TypeErrors etc. return JSON instead of 502.
 			if ( function_exists( 'wsscd_debug_error' ) ) {
 				wsscd_debug_error(
 					'AJAX handler exception',
@@ -345,7 +345,6 @@ class WSSCD_Ajax_Router {
 				);
 			}
 
-			// Debug: Log error response.
 			if ( function_exists( 'wsscd_debug_ajax_response' ) ) {
 				wsscd_debug_ajax_response( $action, array( 'error' => $e->getMessage() ), false, microtime( true ) - $start_time );
 			}

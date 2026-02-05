@@ -128,9 +128,10 @@ class WSSCD_Campaign_Overview_Handler extends WSSCD_Abstract_Ajax_Handler {
 			return array(
 				'success' => true,
 				'data'    => array(
-					'campaign_id' => $campaign_id,
-					'campaign'    => $data,
-					'sections'    => $html,
+					'campaign_id'        => $campaign_id,
+					'campaign'           => $data,
+					'sections'           => $html,
+					'recurring_enabled'  => ! empty( $data['recurring_schedule']['enabled'] ),
 				),
 			);
 

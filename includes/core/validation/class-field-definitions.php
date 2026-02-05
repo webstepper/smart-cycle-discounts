@@ -74,7 +74,7 @@ class WSSCD_Field_Definitions {
 				'type'       => 'textarea',
 				'label'      => __( 'Description', 'smart-cycle-discounts' ),
 				'required'   => false,
-				'max_length' => 100,
+				'max_length' => 5000,
 				'default'    => '',
 				'sanitizer'  => 'sanitize_textarea_field',
 				'validator'  => array( __CLASS__, 'validate_text_length' ),
@@ -1524,9 +1524,22 @@ class WSSCD_Field_Definitions {
 
 	/**
 	 * Validate text length
+	 *
+	 * Coerces value to string for length check so that array/object from session
+	 * or API do not cause TypeError. Non-scalar values are treated as invalid.
 	 */
 	public static function validate_text_length( $value, $schema, $field_key ) {
-		if ( isset( $schema['min_length'] ) && strlen( $value ) < $schema['min_length'] ) {
+		if ( ! is_scalar( $value ) ) {
+			return new WP_Error(
+				'invalid_type',
+				__( 'Value must be text.', 'smart-cycle-discounts' )
+			);
+		}
+
+		$str = (string) $value;
+		$len = strlen( $str );
+
+		if ( isset( $schema['min_length'] ) && $len < $schema['min_length'] ) {
 			return new WP_Error(
 				'min_length',
 				/* translators: %d: minimum character length required */
@@ -1534,7 +1547,7 @@ class WSSCD_Field_Definitions {
 			);
 		}
 
-		if ( isset( $schema['max_length'] ) && strlen( $value ) > $schema['max_length'] ) {
+		if ( isset( $schema['max_length'] ) && $len > $schema['max_length'] ) {
 			return new WP_Error(
 				'max_length',
 				/* translators: %d: maximum character length allowed */

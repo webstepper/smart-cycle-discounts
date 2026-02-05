@@ -49,6 +49,9 @@
 			'spend_threshold': 'Spend threshold badges only display in cart (require cart total context).'
 		},
 
+		defaultBadgeBg: '#ff0000',
+		defaultBadgeText: '#ffffff',
+
 		/**
 		 * Initialize badge settings
 		 *
@@ -176,19 +179,15 @@
 			// Discount type change - update context warning and preview
 			$( document ).on( 'change', '#discount_type', function() {
 				self.updateContextWarning();
-				// Delay to allow discount type fields to load
 				setTimeout( function() {
 					self.updatePreview();
 				}, 50 );
 			} );
 
-			// Discount value changes - update preview in real-time
-			// Use event delegation to handle dynamically loaded fields
 			$( document ).on( 'input change', '#discount_value_percentage, #discount_value_fixed', function() {
 				self.updatePreview();
 			} );
 
-			// BOGO discount fields
 			$( document ).on( 'input change', '#bogo_buy_quantity, #bogo_get_quantity, #bogo_discount_percentage', function() {
 				self.updatePreview();
 			} );
@@ -219,21 +218,19 @@
 			if ( $.fn.wpColorPicker ) {
 				this.cache.badgeBgColor.wpColorPicker( {
 					change: function( event, ui ) {
-						// Use color from callback directly for immediate update
 						self.updatePreviewColors( ui.color.toString(), null );
 					},
 					clear: function() {
-						self.updatePreviewColors( '#ff0000', null );
+						self.updatePreviewColors( self.defaultBadgeBg, null );
 					}
 				} );
 
 				this.cache.badgeTextColor.wpColorPicker( {
 					change: function( event, ui ) {
-						// Use color from callback directly for immediate update
 						self.updatePreviewColors( null, ui.color.toString() );
 					},
 					clear: function() {
-						self.updatePreviewColors( null, '#ffffff' );
+						self.updatePreviewColors( null, self.defaultBadgeText );
 					}
 				} );
 			}
@@ -257,9 +254,8 @@
 				return;
 			}
 
-			// Use provided color or fall back to input value
-			var finalBgColor = bgColor || this.cache.badgeBgColor.val() || '#ff0000';
-			var finalTextColor = textColor || this.cache.badgeTextColor.val() || '#ffffff';
+			var finalBgColor = bgColor || this.cache.badgeBgColor.val() || this.defaultBadgeBg;
+			var finalTextColor = textColor || this.cache.badgeTextColor.val() || this.defaultBadgeText;
 
 			this.cache.previewBadge.css( {
 				'background-color': finalBgColor,
@@ -321,7 +317,6 @@
 		 * @since 1.0.0
 		 */
 		updateContextWarning: function() {
-			// Use fresh selector to get current value
 			var discountType = $( '#discount_type' ).val();
 			var warning = this.contextWarnings[ discountType ];
 
@@ -359,16 +354,15 @@
 				this.cache.previewBadge.text( badgeText );
 
 				// Update colors
-				var bgColor = this.cache.badgeBgColor.val() || '#ff0000';
-				var textColor = this.cache.badgeTextColor.val() || '#ffffff';
+				var bgColor = this.cache.badgeBgColor.val() || this.defaultBadgeBg;
+				var textColor = this.cache.badgeTextColor.val() || this.defaultBadgeText;
 				this.cache.previewBadge.css( {
 					'background-color': bgColor,
 					'color': textColor
 				} );
 
-				// Update position
+				// Update position (single place: updatePreviewPosition sets data-position and inline styles)
 				var position = this.cache.badgePosition.filter( ':checked' ).val() || 'top-right';
-				this.cache.previewBadge.attr( 'data-position', position );
 				this.updatePreviewPosition( position );
 			} catch ( error ) {
 				// Silently handle errors to prevent breaking other functionality
@@ -376,6 +370,23 @@
 					window.console.error( 'Badge preview error:', error );
 				}
 			}
+		},
+
+		/**
+		 * Get currency symbol for badge preview (single source: page data, then localized, then fallback)
+		 *
+		 * @since 1.0.0
+		 * @return {string} Currency symbol
+		 */
+		getCurrencySymbol: function() {
+			var fromPage = $( '.wsscd-badge-config-wrapper' ).attr( 'data-currency-symbol' );
+			if ( fromPage && fromPage.length > 0 ) {
+				return fromPage;
+			}
+			if ( window.wsscdSettings && window.wsscdSettings.currencySymbol ) {
+				return window.wsscdSettings.currencySymbol;
+			}
+			return '$';
 		},
 
 		/**
@@ -393,7 +404,6 @@
 			}
 
 			// Auto-generate based on discount type
-			// Use fresh selectors to get current values in real-time
 			var discountType = $( '#discount_type' ).val();
 			var text = 'SALE';
 
@@ -405,8 +415,7 @@
 			} else if ( 'fixed' === discountType ) {
 				var fixedValue = $( '#discount_value_fixed' ).val();
 				if ( fixedValue && '' !== fixedValue ) {
-					var symbol = ( window.wsscdSettings && window.wsscdSettings.currencySymbol ) || '$';
-					text = symbol + fixedValue + ' OFF';
+					text = this.getCurrencySymbol() + fixedValue + ' OFF';
 				}
 			} else if ( 'tiered' === discountType ) {
 				text = 'VOLUME DISCOUNT';
@@ -432,10 +441,7 @@
 		 * @param {string} position Position value
 		 */
 		updatePreviewPosition: function( position ) {
-			// Update data attribute for CSS selectors
 			this.cache.previewBadge.attr( 'data-position', position );
-
-			// Apply inline positioning for immediate visual feedback
 			var positionStyles = {
 				'top-left': { top: '10px', left: '10px', right: 'auto', bottom: 'auto' },
 				'top-right': { top: '10px', right: '10px', left: 'auto', bottom: 'auto' },

@@ -83,6 +83,12 @@
 			// Now that handlers initialize synchronously (no requestAnimationFrame in init()),
 			// we can register them immediately
 			this.registerExistingHandlers();
+
+			// Register FreeShipping as complex field handler so StepPersistence finds it immediately
+			// (avoids 50x retry loop and "Max retries reached" when populating/collecting freeShippingConfig).
+			if ( WSSCD.Modules.Discounts.FreeShipping && 'function' === typeof WSSCD.Modules.Discounts.FreeShipping.getData ) {
+				this.registerComplexFieldHandler( 'WSSCD.Modules.Discounts.FreeShipping', WSSCD.Modules.Discounts.FreeShipping );
+			}
 		},
 
 		/**
@@ -304,6 +310,7 @@
 					}
 				}
 			} );
+
 		},
 
 		/**
@@ -433,25 +440,17 @@
 		 */
 		scrollToDiscountDetails: function( discountType ) {
 			var self = this;
-			var $detailsCard = $( '#discount-value-card' );
+			var detailsCard = document.getElementById( 'discount-value-card' );
 
-			if ( ! $detailsCard.length ) {
+			if ( ! detailsCard || ! detailsCard.scrollIntoView ) {
 				return;
 			}
 
-			// Small delay to allow UI updates to complete
 			setTimeout( function() {
-				// Scroll to the card with smooth behavior
-				var cardTop = $detailsCard.offset().top;
-				var adminBarHeight = $( '#wpadminbar' ).outerHeight() || 0;
-				var scrollTarget = cardTop - adminBarHeight - 20; // 20px padding
-
-				$( 'html, body' ).animate( {
-					scrollTop: scrollTarget
-				}, 300, function() {
-					// After scroll completes, focus the first input
+				detailsCard.scrollIntoView( { behavior: 'smooth', block: 'start' } );
+				setTimeout( function() {
 					self.focusFirstInputForType( discountType );
-				} );
+				}, 350 );
 			}, 100 );
 		},
 
@@ -488,8 +487,8 @@
 					break;
 			}
 
-			if ( $input && $input.length && $input.is( ':visible' ) ) {
-				$input.focus();
+			if ( $input && $input.length && $input.is( ':visible' ) && $input[0].focus ) {
+				$input[0].focus();
 			}
 		},
 

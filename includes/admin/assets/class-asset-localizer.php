@@ -604,7 +604,7 @@ class WSSCD_Asset_Localizer {
 			'admin_url'         => admin_url(),
 			'campaigns_url'     => admin_url( 'admin.php?page=wsscd-campaigns' ),
 			'campaign_list_url' => admin_url( 'admin.php?page=wsscd-campaigns' ),
-			'edit_draft_url'    => admin_url( 'admin.php?page=wsscd-campaigns&action=edit&id={id}' ),
+			'edit_draft_url'    => admin_url( 'admin.php?page=wsscd-campaigns&action=wizard&intent=edit&id={id}' ),
 			'plugin_url'        => trailingslashit( plugins_url( '', WSSCD_PLUGIN_FILE ) ),
 			'steps'             => array( 'basic', 'products', 'discounts', 'schedule', 'review' ),
 			'debug'             => defined( 'WSSCD_DEBUG' ) && WSSCD_DEBUG, // Add debug flag for JavaScript debug logger
@@ -679,9 +679,16 @@ class WSSCD_Asset_Localizer {
 				),
 			),
 			'timezone'          => wp_timezone_string(),
+			'time_format'       => get_option( 'time_format', 'H:i' ),
 			'debug_persistence' => false, // Set to true to enable debug logging
 			'features'          => $this->get_feature_gate_data(),
 			'available_user_roles' => $this->get_available_user_roles(),
+			'completion_modal'  => array(
+				'redirect_delay'           => 3000,
+				'success_transition_delay' => 300,
+				'focus_delay'              => 50,
+				'retry_cooldown'           => 2000,
+			),
 		);
 
 		$session_data = $this->load_wizard_session_data();
@@ -693,6 +700,9 @@ class WSSCD_Asset_Localizer {
 		// Check if this is a fresh session (signals JS to clear client storage).
 		// This is set by Intent Handler when processing intent=new.
 		$wizard_data['is_fresh'] = $this->is_fresh_session();
+
+		// Expose whether current session was prefilled by Cycle AI (for "Regenerate with AI" on review step).
+		$wizard_data['prefilled_from_cycle_ai'] = $this->is_prefilled_from_cycle_ai();
 
 		return $wizard_data;
 	}
@@ -823,6 +833,27 @@ class WSSCD_Asset_Localizer {
 
 		} catch ( Exception $e ) {
 			return array();
+		}
+	}
+
+	/**
+	 * Check if current wizard session was prefilled by Cycle AI (Create with AI).
+	 *
+	 * Used to show "Regenerate with AI" on the review step when the user may want a different suggestion.
+	 *
+	 * @since 1.0.0
+	 * @return bool True if session was prefilled from Cycle AI.
+	 */
+	private function is_prefilled_from_cycle_ai(): bool {
+		try {
+			if ( ! class_exists( 'WSSCD_Wizard_State_Service' ) ) {
+				require_once WSSCD_INCLUDES_DIR . 'core/wizard/class-wizard-state-service.php';
+			}
+			$state_service = new WSSCD_Wizard_State_Service();
+			$all_data      = $state_service->get_all_data();
+			return ! empty( $all_data['prefilled_from_cycle_ai'] );
+		} catch ( Exception $e ) {
+			return false;
 		}
 	}
 

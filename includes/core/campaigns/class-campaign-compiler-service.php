@@ -293,6 +293,35 @@ class WSSCD_Campaign_Compiler_Service {
 			$data['enable_recurring'] = false;
 		}
 
+		// Schedule for wizard: convert UTC starts_at/ends_at to campaign timezone so the form shows local date/time.
+		if ( ! empty( $data['starts_at'] ) && ! empty( $data['timezone'] ) ) {
+			try {
+				$tz = new DateTimeZone( $data['timezone'] );
+				$start = new DateTime( $data['starts_at'], new DateTimeZone( 'UTC' ) );
+				$start->setTimezone( $tz );
+				$data['start_date'] = $start->format( 'Y-m-d' );
+				$data['start_time'] = $start->format( 'H:i' );
+			} catch ( Exception $e ) {
+				// Fallback: use UTC
+				$start = new DateTime( $data['starts_at'], new DateTimeZone( 'UTC' ) );
+				$data['start_date'] = $start->format( 'Y-m-d' );
+				$data['start_time'] = $start->format( 'H:i' );
+			}
+		}
+		if ( ! empty( $data['ends_at'] ) && ! empty( $data['timezone'] ) ) {
+			try {
+				$tz = new DateTimeZone( $data['timezone'] );
+				$end = new DateTime( $data['ends_at'], new DateTimeZone( 'UTC' ) );
+				$end->setTimezone( $tz );
+				$data['end_date'] = $end->format( 'Y-m-d' );
+				$data['end_time'] = $end->format( 'H:i' );
+			} catch ( Exception $e ) {
+				$end = new DateTime( $data['ends_at'], new DateTimeZone( 'UTC' ) );
+				$data['end_date'] = $end->format( 'Y-m-d' );
+				$data['end_time'] = $end->format( 'H:i' );
+			}
+		}
+
 		return $data;
 	}
 
@@ -306,6 +335,15 @@ class WSSCD_Campaign_Compiler_Service {
 	 */
 	private function transform_campaign_data( array $data ): array {
 		$settings = array();
+
+		// Normalize optional features so they are only enabled when explicitly true (avoids list showing badges when user did not enable).
+		if ( ! isset( $data['free_shipping_config'] ) || ! is_array( $data['free_shipping_config'] ) ) {
+			$data['free_shipping_config'] = array( 'enabled' => false, 'methods' => 'all' );
+		} else {
+			$data['free_shipping_config']['enabled'] = ! empty( $data['free_shipping_config']['enabled'] );
+			$data['free_shipping_config']['methods'] = isset( $data['free_shipping_config']['methods'] ) ? $data['free_shipping_config']['methods'] : 'all';
+		}
+		$data['enable_recurring'] = ! empty( $data['enable_recurring'] );
 
 		if ( isset( $data['discount_type'] ) ) {
 			$settings['discount_type'] = $data['discount_type'];

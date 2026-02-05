@@ -351,7 +351,7 @@ class WSSCD_Email_Manager {
 
 			$variables = array(
 				'campaign_name' => $campaign->get_name(),
-				'campaign_url'  => admin_url( "admin.php?page=wsscd-campaigns&action=edit&id={$campaign_id}" ),
+				'campaign_url'  => admin_url( "admin.php?page=wsscd-campaigns&action=wizard&intent=edit&id={$campaign_id}" ),
 				'start_date'    => $campaign->get_starts_at() ? $campaign->get_starts_at()->format( 'Y-m-d H:i:s' ) : '',
 				'end_date'      => $campaign->get_ends_at() ? $campaign->get_ends_at()->format( 'Y-m-d H:i:s' ) : '',
 				'product_count' => count( $campaign->get_product_ids() ),
@@ -401,7 +401,7 @@ class WSSCD_Email_Manager {
 
 			$variables = array(
 				'campaign_name'       => $campaign->get_name(),
-				'campaign_url'        => admin_url( "admin.php?page=wsscd-campaigns&action=edit&id={$campaign_id}" ),
+				'campaign_url'        => admin_url( "admin.php?page=wsscd-campaigns&action=wizard&intent=edit&id={$campaign_id}" ),
 				'end_date'            => $campaign->get_ends_at() ? $campaign->get_ends_at()->format( 'Y-m-d H:i:s' ) : '',
 				'time_remaining'      => $time_remaining,
 				'performance_summary' => $this->format_performance_summary( $performance ),
@@ -637,7 +637,7 @@ class WSSCD_Email_Manager {
 				'alert_message'       => $alert_data['alert_message'] ?? '',
 				'current_performance' => $alert_data['performance'] ?? '',
 				'recommended_actions' => $this->format_recommended_actions( $alert_data['actions'] ?? array() ),
-				'dashboard_url'       => admin_url( "admin.php?page=wsscd-campaigns&action=edit&id={$campaign_id}" ),
+				'dashboard_url'       => admin_url( "admin.php?page=wsscd-campaigns&action=wizard&intent=edit&id={$campaign_id}" ),
 			);
 
 			$this->queue_email( 'performance_alert', $variables );
@@ -689,7 +689,7 @@ class WSSCD_Email_Manager {
 				'products_list'       => $this->format_product_stock_table( $low_stock_products ),
 				'total_low_stock'     => $total_low_stock,
 				'recommended_actions' => $this->format_recommended_actions( $stock_data['actions'] ?? array() ),
-				'dashboard_url'       => admin_url( "admin.php?page=wsscd-campaigns&action=edit&id={$campaign_id}" ),
+				'dashboard_url'       => admin_url( "admin.php?page=wsscd-campaigns&action=wizard&intent=edit&id={$campaign_id}" ),
 			);
 
 			$this->queue_email( 'low_stock_alert', $variables );
@@ -739,7 +739,7 @@ class WSSCD_Email_Manager {
 				'milestone_value'     => $milestone_data['value'] ?? '',
 				'achievement_message' => $milestone_data['message'] ?? '',
 				'performance_summary' => $milestone_data['performance'] ?? '',
-				'dashboard_url'       => admin_url( "admin.php?page=wsscd-campaigns&action=edit&id={$campaign_id}" ),
+				'dashboard_url'       => admin_url( "admin.php?page=wsscd-campaigns&action=wizard&intent=edit&id={$campaign_id}" ),
 			);
 
 			$this->queue_email( 'milestone_alert', $variables );

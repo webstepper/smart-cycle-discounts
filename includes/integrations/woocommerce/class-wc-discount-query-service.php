@@ -226,7 +226,7 @@ class WSSCD_WC_Discount_Query_Service {
 				}
 			}
 
-			// Step 5: Calculate discount
+			// Step 5: Calculate discount (always from regular price; never stack on WC sale price).
 			$original_price   = floatval( $product->get_regular_price() );
 			$discount_context = $this->build_discount_context( $product, $product_id, $context );
 

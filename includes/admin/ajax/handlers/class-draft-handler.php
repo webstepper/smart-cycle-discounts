@@ -223,8 +223,23 @@ class WSSCD_Draft_Handler {
 					$this->state_service->set_step_data( $step, $campaign_data[ $step ] );
 				}
 			}
-
 			$this->state_service->save();
+		}
+
+		// Before creating or updating a campaign, run a final cross-step validation
+		// using the campaign_complete context. This ensures that campaigns cannot
+		// be launched or saved as draft with incomplete or invalid wizard data,
+		// even when the client sends a full campaign_data payload.
+		$session_data      = $this->state_service->get_all_data();
+		$data_for_validate = isset( $session_data['steps'] ) && is_array( $session_data['steps'] ) ? $session_data['steps'] : $session_data;
+		$validation_result = WSSCD_Validation::validate( $data_for_validate, 'campaign_complete' );
+		if ( is_wp_error( $validation_result ) ) {
+			WSSCD_Ajax_Response::error(
+				$validation_result->get_error_message(),
+				'validation_failed',
+				array( 'errors' => WSSCD_Validation::extract_error_codes( $validation_result ) )
+			);
+			return;
 		}
 
 		if ( ! $this->campaign_manager ) {

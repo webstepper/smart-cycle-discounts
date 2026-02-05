@@ -76,10 +76,11 @@ class WSSCD_Tiered_Strategy implements WSSCD_Discount_Strategy_Interface {
 				return WSSCD_Discount_Result::no_discount( $original_price, $this->get_strategy_id(), 'No applicable tier found' );
 			}
 
-			// Determine application mode (default to per_item for backward compatibility)
+			// Determine application mode (default to per_item for backward compatibility).
+			// UI/compiler use "cart_total"; strategy uses "order_total" - treat as same.
 			$apply_to = $discount_config['apply_to'] ?? 'per_item';
 
-			if ( 'order_total' === $apply_to ) {
+			if ( in_array( $apply_to, array( 'order_total', 'cart_total' ), true ) ) {
 				return $this->calculate_order_total_discount( $original_price, $applicable_tier, $quantity );
 			} else {
 				return $this->calculate_per_item_discount( $original_price, $applicable_tier, $quantity );

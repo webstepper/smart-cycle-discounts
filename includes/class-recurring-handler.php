@@ -170,6 +170,8 @@ class WSSCD_Recurring_Handler {
 
 		// Check if recurring is enabled
 		if ( empty( $schedule[ WSSCD_Schedule_Field_Names::ENABLE_RECURRING ] ) ) {
+			// Recurring disabled: remove any existing recurring row so one-time campaigns don't show recurring UI.
+			$this->delete_recurring_row_for_campaign( $campaign_id );
 			return;
 		}
 
@@ -389,6 +391,26 @@ class WSSCD_Recurring_Handler {
 	}
 
 	/**
+	 * Delete recurring row for a campaign (when recurring is disabled).
+	 * Prevents one-time campaigns from showing recurring schedule UI due to stale data.
+	 *
+	 * @since  1.1.0
+	 * @param  int $campaign_id Campaign ID.
+	 * @return void
+	 */
+	private function delete_recurring_row_for_campaign( int $campaign_id ): void {
+		if ( $campaign_id <= 0 ) {
+			return;
+		}
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Intentional delete; table name from trusted prefix.
+		$this->wpdb->delete(
+			$this->recurring_table,
+			array( 'campaign_id' => $campaign_id ),
+			array( '%d' )
+		);
+	}
+
+	/**
 	 * Calculate first occurrence date
 	 *
 	 * @since  1.1.0
@@ -396,14 +418,17 @@ class WSSCD_Recurring_Handler {
 	 * @return string          Next occurrence datetime.
 	 */
 	private function calculate_first_occurrence( array $schedule ): string {
-		$end_date = $schedule['end_date'] ?? '';
-		$end_time = $schedule['end_time'] ?? '23:59';
+		$end_date   = $schedule['end_date'] ?? '';
+		$end_time   = $schedule['end_time'] ?? '23:59';
+		$tz_string  = isset( $schedule['timezone'] ) && is_string( $schedule['timezone'] ) && '' !== trim( $schedule['timezone'] ) ? $schedule['timezone'] : wp_timezone_string();
 
 		try {
-			$end_datetime = new DateTime( $end_date . ' ' . $end_time, new DateTimeZone( wp_timezone_string() ) );
+			$tz = new DateTimeZone( $tz_string );
+			$end_datetime = new DateTime( $end_date . ' ' . $end_time, $tz );
+			$end_datetime->setTimezone( new DateTimeZone( 'UTC' ) );
 			return $end_datetime->format( 'Y-m-d H:i:s' );
 		} catch ( Exception $e ) {
-			return current_time( 'mysql' );
+			return gmdate( 'Y-m-d H:i:s' );
 		}
 	}
 
@@ -935,8 +960,16 @@ class WSSCD_Recurring_Handler {
 			return false;
 		}
 
-		// Determine the check time
-		$timezone = new DateTimeZone( wp_timezone_string() );
+		// Use campaign timezone so "current time" and daily window (start/end time) are in the same zone.
+		$tz_string = $campaign->get_timezone();
+		if ( empty( $tz_string ) || ! is_string( $tz_string ) ) {
+			$tz_string = wp_timezone_string();
+		}
+		try {
+			$timezone = new DateTimeZone( $tz_string );
+		} catch ( Exception $e ) {
+			$timezone = new DateTimeZone( wp_timezone_string() );
+		}
 		try {
 			$now = $check_time ? new DateTime( $check_time, $timezone ) : new DateTime( 'now', $timezone );
 		} catch ( Exception $e ) {
@@ -1024,12 +1057,15 @@ class WSSCD_Recurring_Handler {
 				return true;
 
 			case 'weekly':
-				// Check if today's day of week is in the selected days
-				$current_day = strtolower( $now->format( 'l' ) );
+				// Check if today's day of week is in the selected days.
+				// Form stores short names (mon, tue, ...); support both short (D) and full (l).
+				$current_short = strtolower( $now->format( 'D' ) );
+				$current_full  = strtolower( $now->format( 'l' ) );
 				if ( empty( $days ) ) {
 					return true; // No days specified = all days.
 				}
-				return in_array( $current_day, $days, true );
+				$days = array_map( 'strtolower', array_map( 'strval', (array) $days ) );
+				return in_array( $current_short, $days, true ) || in_array( $current_full, $days, true );
 
 			case 'monthly':
 				// Check if today's date matches the selected days

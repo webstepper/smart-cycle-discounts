@@ -294,6 +294,11 @@ class WSSCD_WC_Price_Integration {
 	/**
 	 * Modify cart item prices before calculation.
 	 *
+	 * Flow for WooCommerce sale vs SCD:
+	 * - SCD always uses regular price as base; when SCD applies, cart shows SCD discounted price.
+	 * - When SCD does not apply, cart shows WooCommerce price (sale price if on sale, else regular).
+	 * - "Apply to sale items" is enforced earlier (rules enforcer): when false, SCD is not applied to products on sale.
+	 *
 	 * @since    1.0.0
 	 * @param    mixed $cart    Cart object (may be other types from some hooks).
 	 * @return   void
@@ -345,7 +350,8 @@ class WSSCD_WC_Price_Integration {
 
 				$discount_info = $this->discount_query->get_discount_info( $product_id, $context );
 
-				// Apply discount if eligible
+				// Apply discount if eligible. SCD always calculates from regular price; when SCD
+				// does not apply, use WooCommerce price (sale if on sale, else regular).
 				if ( $discount_info && $this->should_apply_discount( $product, $discount_info ) ) {
 					$discounted_price = (float) $discount_info['discounted_price'];
 
@@ -360,7 +366,15 @@ class WSSCD_WC_Price_Integration {
 						);
 					}
 				} else {
-					$product->set_price( $original_price );
+					// No SCD: preserve WooCommerce price (sale price if on sale, else regular).
+					$price_without_scd = (float) $product->get_regular_price();
+					if ( $product->is_on_sale() ) {
+						$sale_price = (float) $product->get_sale_price();
+						if ( $sale_price > 0 ) {
+							$price_without_scd = $sale_price;
+						}
+					}
+					$product->set_price( $price_without_scd );
 
 					if ( isset( WC()->cart->cart_contents[ $cart_item_key ]['wsscd_discount'] ) ) {
 						unset( WC()->cart->cart_contents[ $cart_item_key ]['wsscd_discount'] );

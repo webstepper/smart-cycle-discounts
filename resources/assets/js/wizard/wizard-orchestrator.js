@@ -872,11 +872,17 @@
 					} );
 				}
 
-				// Build payload: send full step data so server has campaign data even if session cookie is missing (e.g. after Cycle AI redirect).
+				// Build payload: collect current form data from all steps so server gets actual toggles (e.g. free shipping, recurring), not stale state.
 				var payload = { saveAsDraft: options.saveAsDraft };
-				var state = self.modules.stateManager ? self.modules.stateManager.get() : null;
-				if ( state && state.stepData ) {
-					var stepData = state.stepData;
+				var stepData = null;
+				if ( 'function' === typeof self.collectData ) {
+					stepData = self.collectData();
+				}
+				if ( ! stepData && self.modules.stateManager ) {
+					var state = self.modules.stateManager.get();
+					stepData = ( state && state.stepData ) ? state.stepData : {};
+				}
+				if ( stepData ) {
 					if ( ! stepData.review ) {
 						stepData.review = {};
 					}

@@ -333,7 +333,7 @@ class WSSCD_Campaign_Health_Service {
 	private function normalize_campaign_data( $campaign ) {
 		if ( is_object( $campaign ) && method_exists( $campaign, 'get_id' ) ) {
 			// WSSCD_Campaign object
-			return array(
+			$data = array(
 				'id'                     => $campaign->get_id(),
 				'name'                   => $campaign->get_name(),
 				'description'            => $campaign->get_description(),
@@ -347,6 +347,10 @@ class WSSCD_Campaign_Health_Service {
 				'end_date'               => $campaign->get_ends_at() ? $campaign->get_ends_at()->format( 'Y-m-d' ) : null,
 				'metadata'               => $campaign->get_metadata(),
 			);
+			if ( method_exists( $campaign, 'get_discount_rules' ) ) {
+				$data['discount_rules'] = $campaign->get_discount_rules();
+			}
+			return $data;
 		} elseif ( is_array( $campaign ) ) {
 			// Array format from database - normalize field names and decode JSON fields
 			// Database uses 'product_ids' but health checks expect 'selected_product_ids'
@@ -1326,21 +1330,21 @@ class WSSCD_Campaign_Health_Service {
 			}
 		}
 
-		// BUSINESS WARNING: Tiered discount logic issues
+		// BUSINESS WARNING: Tiered discount logic issues (tiers live in discount_rules or discount_config)
 		if ( 'tiered' === $discount_type ) {
-			$tiers = isset( $campaign['discount_config']['tiered']['tiers'] ) ? $campaign['discount_config']['tiered']['tiers'] : array();
+			$tiers = isset( $campaign['discount_rules']['tiers'] ) ? $campaign['discount_rules']['tiers'] : ( isset( $campaign['discount_config']['tiers'] ) ? $campaign['discount_config']['tiers'] : array() );
 			if ( is_string( $tiers ) ) {
 				$tiers = maybe_unserialize( $tiers );
 			}
 
 			if ( ! empty( $tiers ) && is_array( $tiers ) && count( $tiers ) >= 2 ) {
 				$prev_quantity = 0;
-				$prev_discount = 0;
+				$prev_discount = 0.0;
 				$is_illogical  = false;
 
 				foreach ( $tiers as $tier ) {
-					$quantity = isset( $tier['quantity'] ) ? intval( $tier['quantity'] ) : 0;
-					$discount = isset( $tier['discount'] ) ? floatval( $tier['discount'] ) : 0;
+					$quantity = isset( $tier['min_quantity'] ) ? intval( $tier['min_quantity'] ) : 0;
+					$discount = isset( $tier['discount_value'] ) ? floatval( $tier['discount_value'] ) : 0.0;
 
 					if ( $prev_discount > 0 && $discount < $prev_discount ) {
 						$is_illogical = true;
@@ -1393,15 +1397,15 @@ class WSSCD_Campaign_Health_Service {
 			}
 		}
 
-		// BUSINESS WARNING: Spend threshold reasonableness
+		// BUSINESS WARNING: Spend threshold reasonableness (thresholds in discount_rules or discount_config)
 		if ( 'spend_threshold' === $discount_type ) {
-			$thresholds = isset( $campaign['discount_config']['spend_threshold']['thresholds'] ) ? $campaign['discount_config']['spend_threshold']['thresholds'] : array();
+			$thresholds = isset( $campaign['discount_rules']['thresholds'] ) ? $campaign['discount_rules']['thresholds'] : ( isset( $campaign['discount_config']['thresholds'] ) ? $campaign['discount_config']['thresholds'] : array() );
 			if ( is_string( $thresholds ) ) {
 				$thresholds = maybe_unserialize( $thresholds );
 			}
 
 			if ( ! empty( $thresholds ) && is_array( $thresholds ) ) {
-				$first_threshold = isset( $thresholds[0]['amount'] ) ? floatval( $thresholds[0]['amount'] ) : 0;
+				$first_threshold = isset( $thresholds[0]['spend_amount'] ) ? floatval( $thresholds[0]['spend_amount'] ) : 0;
 
 				// BUSINESS WARNING: Threshold may be too high
 				if ( $first_threshold > 500 ) {

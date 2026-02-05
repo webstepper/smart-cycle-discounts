@@ -34,25 +34,6 @@
 		},
 
 		/**
-		 * Complete wizard and create campaign
-		 * @param data
-		 */
-		completeWizard: function( data ) {
-			if ( WSSCD.Utils.isEmpty( data ) ) {
-				var error = new Error( 'Wizard completion data is required' );
-				WSSCD.ErrorHandler.handle( error, 'ReviewAPI.completeWizard', WSSCD.ErrorHandler.SEVERITY.MEDIUM );
-				return $.Deferred().reject( error ).promise();
-			}
-
-			return WSSCD.Ajax.post( 'wsscd_complete_wizard', {
-				launchOption: data.launchOption || 'draft',
-				data: data
-			} ).fail( function( xhr ) {
-				WSSCD.ErrorHandler.handleAjaxError( xhr, 'wsscd_complete_wizard', { launchOption: data.launchOption } );
-			} );
-		},
-
-		/**
 		 * Save review step data
 		 * @param data
 		 */
