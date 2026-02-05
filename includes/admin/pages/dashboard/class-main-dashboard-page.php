@@ -100,7 +100,7 @@ class WSSCD_Main_Dashboard_Page {
 	 * @return   void
 	 */
 	public function render(): void {
-		if ( ! current_user_can( 'wsscd_view_analytics' ) ) {
+		if ( ! current_user_can( 'wsscd_view_analytics' ) && ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'smart-cycle-discounts' ) );
 		}
 

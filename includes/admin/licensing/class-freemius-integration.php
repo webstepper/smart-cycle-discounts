@@ -201,6 +201,9 @@ class WSSCD_Freemius_Integration {
 		self::$freemius->add_filter( 'after_connect_url', array( __CLASS__, 'filter_after_activation_redirect_url' ) );
 		self::$freemius->add_filter( 'after_skip_url', array( __CLASS__, 'filter_after_activation_redirect_url' ) );
 
+		// Keep plugin menu visible on subsites when network-activated so subdomain admins can access the plugin.
+		self::$freemius->add_filter( 'should_hide_site_admin_settings_on_network_activation_mode', array( __CLASS__, 'filter_keep_menu_on_subsites' ) );
+
 		// Style the reminder admin notice.
 		add_action( 'admin_head', array( __CLASS__, 'inject_reminder_notice_styles' ) );
 	}
@@ -231,6 +234,22 @@ class WSSCD_Freemius_Integration {
 
 		// Inject custom styling.
 		self::$freemius->add_action( 'connect/before', array( __CLASS__, 'inject_optin_styles' ) );
+	}
+
+	/**
+	 * Keep plugin menu visible on subsites when network-activated.
+	 *
+	 * Freemius normally hides the plugin menu on subsites when network-activated
+	 * and the connection is not delegated, which causes "Sorry, you are not allowed
+	 * to access this page" on every plugin page. Returning false keeps the menu so
+	 * subdomain admins can use the plugin.
+	 *
+	 * @since    1.0.0
+	 * @param    bool $should_hide    Whether to hide site admin settings on subsites.
+	 * @return   bool                False to always show the menu on subsites.
+	 */
+	public static function filter_keep_menu_on_subsites( $should_hide ) {
+		return false;
 	}
 
 	/**

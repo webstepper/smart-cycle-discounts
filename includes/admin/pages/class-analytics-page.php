@@ -109,10 +109,6 @@ class WSSCD_Analytics_Page {
 	 * @return   void
 	 */
 	public function render(): void {
-		if ( ! current_user_can( 'wsscd_view_analytics' ) ) {
-			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'smart-cycle-discounts' ) );
-		}
-
 		$is_premium = function_exists( 'wsscd_is_premium' ) && wsscd_is_premium();
 
 		// Show upgrade prompt for free users
