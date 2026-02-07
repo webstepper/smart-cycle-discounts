@@ -117,8 +117,10 @@ class WSSCD_WC_Price_Integration {
 		add_action( 'woocommerce_before_calculate_totals', array( $this, 'modify_cart_item_prices' ), 10, 1 );
 
 		// Subscription sign-up fee hook (Pro feature).
-		if ( $this->subscription_handler && wsscd_fs()->is__premium_only() ) {
-			add_filter( 'woocommerce_subscriptions_product_sign_up_fee', array( $this, 'modify_signup_fee__premium_only' ), 10, 2 );
+		if ( wsscd_fs()->is__premium_only() ) {
+			if ( $this->subscription_handler ) {
+				add_filter( 'woocommerce_subscriptions_product_sign_up_fee', array( $this, 'modify_signup_fee__premium_only' ), 10, 2 );
+			}
 		}
 	}
 

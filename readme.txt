@@ -3,7 +3,7 @@ Contributors: webstepper
 Tags: discount rules, BOGO, bulk discount, tiered pricing, sale scheduler
 Requires at least: 6.4
 Tested up to: 6.9
-Stable tag: 1.6.1
+Stable tag: 1.6.2
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -457,8 +457,9 @@ Pro users can configure combination policies for each campaign. Choose whether y
 
 == Changelog ==
 
-= 1.6.1 =
-* Fix: Corrected Freemius Pro code gating to use official __premium_only method suffix pattern for WordPress.org compliance.
+= 1.6.2 =
+* Fix: Corrected Freemius Pro code stripping for subscription sign-up fee hook registration.
+* Fix: Use official __premium_only method suffix pattern for WordPress.org compliance.
 
 = 1.6.0 =
 * New: WooCommerce Subscriptions support - discount campaigns now work on subscription products automatically.
@@ -708,7 +709,7 @@ Pro users can configure combination policies for each campaign. Choose whether y
 
 == Upgrade Notice ==
 
-= 1.6.1 =
+= 1.6.2 =
 Freemius Pro code gating fix for WordPress.org compliance.
 
 = 1.6.0 =
