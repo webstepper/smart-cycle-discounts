@@ -829,11 +829,12 @@
 | `class-woocommerce-integration.php` | 446 |
 | `class-wc-display-integration.php` | 394 |
 | `class-wc-price-integration.php` | 362 |
+| `class-wc-blocks-integration.php` | 329 |
 | `class-wc-order-integration.php` | 170 |
 | `class-wc-cart-message-service.php` | 153 |
 | `class-wc-admin-integration.php` | 125 |
 
-**Folder Total: 7 files, 2125 LOC**
+**Folder Total: 8 files, 2454 LOC**
 
 ### 📁 `includes/security/`
 
@@ -1301,10 +1302,9 @@
 | `step-discounts-sidebar.css` | 183 |
 | `session-expiration-modal.css` | 170 |
 | `step-review-sidebar.css` | 155 |
-| `recurring-badges.css` | 80 |
 | `tooltips.css` | 47 |
 
-**Folder Total: 30 files, 15480 LOC**
+**Folder Total: 29 files, 15400 LOC**
 
 ### 📁 `resources/assets/css/admin/dashboard/`
 

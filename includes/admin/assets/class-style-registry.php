@@ -418,17 +418,6 @@ class WSSCD_Style_Registry {
 			)
 		);
 
-		// Recurring campaigns badge styles
-		$this->add_style(
-			'wsscd-recurring-badges',
-			array(
-				'src'      => 'resources/assets/css/admin/recurring-badges.css',
-				'deps'     => array( 'wsscd-admin' ),
-				'pages'    => array( 'wsscd-campaigns' ),
-				'priority' => 10,
-			)
-		);
-
 		// Campaigns list table styles
 		$this->add_style(
 			'wsscd-campaigns-list',

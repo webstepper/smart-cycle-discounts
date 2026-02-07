@@ -328,25 +328,21 @@ class WSSCD_Analytics_Page {
 					<?php
 					WSSCD_Icon_Helper::render( 'chart-area', array( 'size' => 16, 'class' => 'wsscd-upgrade-icon' ) );
 					?>
-					<h2><?php esc_html_e( 'Unlock Advanced Analytics with Pro', 'smart-cycle-discounts' ); ?></h2>
+					<h2><?php esc_html_e( 'Unlock Analytics with Pro', 'smart-cycle-discounts' ); ?></h2>
 
 					<p class="wsscd-upgrade-description">
-						<?php esc_html_e( 'Get access to powerful analytics and insights to optimize your discount campaigns:', 'smart-cycle-discounts' ); ?>
+						<?php esc_html_e( 'Pro adds the full analytics dashboard so you can measure campaign performance and export data:', 'smart-cycle-discounts' ); ?>
 					</p>
 
-					<?php
-										?>
 					<ul class="wsscd-feature-list">
-						<li><?php WSSCD_Icon_Helper::render( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Custom date ranges and flexible reporting', 'smart-cycle-discounts' ); ?></li>
-						<li><?php WSSCD_Icon_Helper::render( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Export data to CSV and JSON formats', 'smart-cycle-discounts' ); ?></li>
-						<li><?php WSSCD_Icon_Helper::render( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Advanced metrics and performance charts', 'smart-cycle-discounts' ); ?></li>
-						<li><?php WSSCD_Icon_Helper::render( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Geographic sales breakdown', 'smart-cycle-discounts' ); ?></li>
-						<li><?php WSSCD_Icon_Helper::render( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Traffic source analysis', 'smart-cycle-discounts' ); ?></li>
-						<li><?php WSSCD_Icon_Helper::render( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Customer lifetime value calculations', 'smart-cycle-discounts' ); ?></li>
-						<li><?php WSSCD_Icon_Helper::render( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Conversion funnel analysis', 'smart-cycle-discounts' ); ?></li>
-						<li><?php WSSCD_Icon_Helper::render( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Priority support', 'smart-cycle-discounts' ); ?></li>
+						<li><?php WSSCD_Icon_Helper::render( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Custom date ranges (24 hours, 7/30/90 days, or custom)', 'smart-cycle-discounts' ); ?></li>
+						<li><?php WSSCD_Icon_Helper::render( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Key metrics: revenue, impressions, clicks, conversions, conversion rate, average order value', 'smart-cycle-discounts' ); ?></li>
+						<li><?php WSSCD_Icon_Helper::render( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Period-over-period comparison (current vs previous period)', 'smart-cycle-discounts' ); ?></li>
+						<li><?php WSSCD_Icon_Helper::render( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Revenue trend chart and performance summary', 'smart-cycle-discounts' ); ?></li>
+						<li><?php WSSCD_Icon_Helper::render( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Top-performing products by campaign', 'smart-cycle-discounts' ); ?></li>
+						<li><?php WSSCD_Icon_Helper::render( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Export to CSV or JSON', 'smart-cycle-discounts' ); ?></li>
+						<li><?php WSSCD_Icon_Helper::render( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Daily and weekly email reports (Pro notifications)', 'smart-cycle-discounts' ); ?></li>
 					</ul>
-					<?php  ?>
 
 					<div class="wsscd-upgrade-actions">
 						<?php

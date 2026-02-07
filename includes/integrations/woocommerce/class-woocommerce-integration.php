@@ -166,6 +166,17 @@ class WSSCD_WooCommerce_Integration implements WSSCD_Ecommerce_Integration {
 	private ?WSSCD_WC_Free_Shipping_Handler $free_shipping_handler = null;
 
 	/**
+	 * Blocks integration instance.
+	 *
+	 * Handles WooCommerce block-based cart and checkout integration.
+	 *
+	 * @since    1.5.70
+	 * @access   private
+	 * @var      WSSCD_WC_Blocks_Integration|null    $blocks_integration    Blocks integration.
+	 */
+	private ?WSSCD_WC_Blocks_Integration $blocks_integration = null;
+
+	/**
 	 * WooCommerce compatibility status.
 	 *
 	 * @since    1.0.0
@@ -342,6 +353,11 @@ class WSSCD_WooCommerce_Integration implements WSSCD_Ecommerce_Integration {
 				);
 			}
 
+			// Initialize blocks integration if WooCommerce Blocks is available
+			if ( class_exists( 'Automattic\WooCommerce\Blocks\Integrations\IntegrationInterface' ) ) {
+				$this->blocks_integration = new WSSCD_WC_Blocks_Integration( $this->logger );
+			}
+
 			$this->log( 'debug', 'WooCommerce integration components initialized successfully' );
 
 		} catch ( RuntimeException $e ) {
@@ -410,6 +426,11 @@ class WSSCD_WooCommerce_Integration implements WSSCD_Ecommerce_Integration {
 		// Free shipping handler - runs on frontend only
 		if ( ! is_admin() && $this->free_shipping_handler ) {
 			$this->free_shipping_handler->register_hooks();
+		}
+
+		// Blocks integration - runs on frontend only
+		if ( ! is_admin() && $this->blocks_integration ) {
+			$this->blocks_integration->register_hooks();
 		}
 
 		// WooCommerce compatibility hooks
@@ -489,7 +510,13 @@ class WSSCD_WooCommerce_Integration implements WSSCD_Ecommerce_Integration {
 				true
 			);
 
-			$this->log( 'debug', 'WooCommerce HPOS compatibility declared' );
+			\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility(
+				'cart_checkout_blocks',
+				WSSCD_PLUGIN_FILE,
+				true
+			);
+
+			$this->log( 'debug', 'WooCommerce HPOS and Blocks compatibility declared' );
 		}
 	}
 

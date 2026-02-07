@@ -204,8 +204,14 @@ class WSSCD_Freemius_Integration {
 		// Custom styles for the Pricing (Upgrade) page.
 		self::$freemius->add_filter( 'pricing/css_path', array( __CLASS__, 'filter_pricing_css_path' ) );
 
+		// Hide Screen Options / Help bar on Pricing page only (cleaner full-width layout).
+		add_action( 'admin_head', array( __CLASS__, 'hide_screen_meta_on_pricing_page' ) );
+
 		// Style the reminder admin notice.
 		add_action( 'admin_head', array( __CLASS__, 'inject_reminder_notice_styles' ) );
+
+		// Ensure pricing page is reachable when Freemius hides the menu item (e.g. expired license).
+		add_action( 'admin_menu', array( __CLASS__, 'ensure_pricing_page_accessible' ), 9999 );
 	}
 
 	/**
@@ -577,20 +583,25 @@ class WSSCD_Freemius_Integration {
 			.notice[data-plugin="smart-cycle-discounts"]:not(.updated):not(.error):not(.notice-warning) {
 				border-left-color: #72aee6 !important;
 			}
+			/* Stack content vertically so multiple paragraphs/sentences flow in one column, not side-by-side */
 			.fs-notice.fs-slug-smart-cycle-discounts .fs-notice-body,
 			.notice[data-plugin="smart-cycle-discounts"] .fs-notice-body {
-				display: flex !important;
-				align-items: center !important;
-				gap: 12px !important;
+				display: block !important;
 				padding: 11px 0 !important;
 			}
 			.fs-notice.fs-slug-smart-cycle-discounts .fs-notice-body p,
-			.fs-notice.fs-slug-smart-cycle-discounts .fs-notice-body,
+			.fs-notice.fs-slug-smart-cycle-discounts .fs-notice-body strong,
+			.notice[data-plugin="smart-cycle-discounts"] .fs-notice-body p,
+			.notice[data-plugin="smart-cycle-discounts"] .fs-notice-body strong,
 			.notice[data-plugin="smart-cycle-discounts"] p {
 				font-size: 13px !important;
 				line-height: 1.5 !important;
 				color: #1d2327 !important;
-				margin: 0 !important;
+				margin: 0 0 0.5em 0 !important;
+			}
+			.fs-notice.fs-slug-smart-cycle-discounts .fs-notice-body p:last-child,
+			.notice[data-plugin="smart-cycle-discounts"] .fs-notice-body p:last-child {
+				margin-bottom: 0 !important;
 			}
 			.fs-notice.fs-slug-smart-cycle-discounts .fs-notice-body .button,
 			.notice[data-plugin="smart-cycle-discounts"] .button {
@@ -628,6 +639,87 @@ class WSSCD_Freemius_Integration {
 			}
 		</style>
 		<?php
+	}
+
+	/**
+	 * Hide the Screen Options / Help bar on the Freemius Pricing page only.
+	 *
+	 * Keeps a cleaner full-width layout for the upgrade experience. All other
+	 * admin pages keep the native Help and Screen Options. Allowed per WordPress
+	 * guidelines when scoped to a single screen.
+	 *
+	 * @since    1.2.1
+	 * @return   void
+	 */
+	public static function hide_screen_meta_on_pricing_page() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only display context; no state change.
+		$page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
+		if ( 'smart-cycle-discounts-pricing' !== $page ) {
+			return;
+		}
+		?>
+		<style>
+			#screen-meta,
+			#screen-meta-links {
+				display: none !important;
+			}
+		</style>
+		<?php
+	}
+
+	/**
+	 * Ensure the pricing page is registered under our menu when Freemius hides it.
+	 *
+	 * When the license is expired, Freemius may register the pricing page with an empty
+	 * parent slug, so the URL is not under our plugin menu and WordPress can show
+	 * "Sorry, you are not allowed to access this page." This fallback registers the
+	 * same page under our parent with manage_options so the "View pricing" link works.
+	 *
+	 * @since    1.5.70
+	 * @return   void
+	 */
+	public static function ensure_pricing_page_accessible() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		$parent_slug = 'smart-cycle-discounts';
+		$pricing_slug = 'smart-cycle-discounts-pricing';
+
+		global $submenu;
+		if ( ! empty( $submenu[ $parent_slug ] ) ) {
+			foreach ( $submenu[ $parent_slug ] as $item ) {
+				// Item is array: [ 0 => menu_title, 1 => capability, 2 => menu_slug, ... ].
+				if ( isset( $item[2] ) && $pricing_slug === $item[2] ) {
+					return;
+				}
+			}
+		}
+
+		$page_title = __( 'Pricing', 'smart-cycle-discounts' );
+		$menu_title = __( 'Pricing', 'smart-cycle-discounts' );
+		add_submenu_page(
+			$parent_slug,
+			$page_title,
+			$menu_title,
+			'manage_options',
+			$pricing_slug,
+			array( __CLASS__, 'render_pricing_page_fallback' )
+		);
+	}
+
+	/**
+	 * Render the Freemius pricing page when we registered the fallback menu item.
+	 *
+	 * @since    1.5.70
+	 * @return   void
+	 */
+	public static function render_pricing_page_fallback() {
+		if ( function_exists( 'wsscd_fs' ) && wsscd_fs() && method_exists( wsscd_fs(), '_pricing_page_render' ) ) {
+			wsscd_fs()->_pricing_page_render();
+			return;
+		}
+		echo '<div class="wrap"><p>' . esc_html__( 'Pricing is not available at the moment.', 'smart-cycle-discounts' ) . '</p></div>';
 	}
 
 	/**

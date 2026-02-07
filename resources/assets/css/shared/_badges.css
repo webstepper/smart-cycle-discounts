@@ -11,72 +11,68 @@
  */
 
 /* ==========================================================================
-   Base Badge Mixin (applied to all badge types)
+   Base
    ========================================================================== */
 
-/* Campaign Status Badges */
 .wsscd-badge-status--active,
 .wsscd-badge-status--inactive,
 .wsscd-badge-status--scheduled,
 .wsscd-badge-status--expired,
 .wsscd-badge-status--draft,
 .wsscd-badge-status--paused,
-/* Health Check Badges */
 .wsscd-badge-health--healthy,
 .wsscd-badge-health--warning,
 .wsscd-badge-health--alert,
 .wsscd-badge-health--info,
-/* Performance Badges */
 .wsscd-badge--performance,
 .wsscd-badge--high-performance,
 .wsscd-badge--medium-performance,
 .wsscd-badge--low-performance,
-/* Discount Type Badges */
 .wsscd-badge--percentage,
 .wsscd-badge--fixed,
 .wsscd-badge--bogo,
 .wsscd-badge--tiered,
-/* Product Selection Badges */
-.wsscd-badge-product {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--wsscd-spacing-xs);
-    padding: var(--wsscd-spacing-xs) var(--wsscd-spacing-md);
-    font-size: var(--wsscd-font-size-small);
-    font-weight: var(--wsscd-font-weight-medium);
-    line-height: 1.5;
-    text-align: center;
-    white-space: nowrap;
-    border-radius: var(--wsscd-radius-md); /* 6px - subtle rounded, not too circular */
-    transition: var(--wsscd-transition-all);
+.wsscd-badge-product,
+.wsscd-recurring-badge,
+.wsscd-free-shipping-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--wsscd-spacing-xs);
+	padding: var(--wsscd-spacing-xs) var(--wsscd-spacing-md);
+	font-size: var(--wsscd-font-size-small);
+	font-weight: var(--wsscd-font-weight-medium);
+	line-height: 1.5;
+	text-align: center;
+	white-space: nowrap;
+	border-radius: var(--wsscd-radius-md);
+	transition: var(--wsscd-transition-all);
 }
 
 /* ==========================================================================
-   Badge Size Variants
+   Sizes
    ========================================================================== */
 
 .wsscd-badge--sm {
-    padding: 2px var(--wsscd-spacing-sm);
-    font-size: var(--wsscd-font-size-small);
-    gap: var(--wsscd-spacing-xxs);
+	padding: 2px var(--wsscd-spacing-sm);
+	font-size: var(--wsscd-font-size-small);
+	gap: var(--wsscd-spacing-xxs);
 }
 
 .wsscd-badge--md {
-    padding: var(--wsscd-spacing-xs) var(--wsscd-spacing-md);
-    font-size: var(--wsscd-font-size-base);
+	padding: var(--wsscd-spacing-xs) var(--wsscd-spacing-md);
+	font-size: var(--wsscd-font-size-base);
 }
 
 .wsscd-badge--lg {
-    padding: var(--wsscd-spacing-sm) var(--wsscd-spacing-base);
-    font-size: var(--wsscd-font-size-medium);
-    gap: var(--wsscd-spacing-sm);
+	padding: var(--wsscd-spacing-sm) var(--wsscd-spacing-base);
+	font-size: var(--wsscd-font-size-medium);
+	gap: var(--wsscd-spacing-sm);
 }
 
 /* ==========================================================================
-   Campaign Status Badges
+   Status
    ========================================================================== */
 
-/* Active campaigns */
 .wsscd-badge-status--active {
     background: var(--wsscd-color-success-lighter);
     color: var(--wsscd-color-success);
@@ -86,92 +82,80 @@
     color: var(--wsscd-color-success);
 }
 
-/* Inactive campaigns */
 .wsscd-badge-status--inactive {
     background: var(--wsscd-color-text-alpha-15);
     color: var(--wsscd-color-text-muted);
 }
 
-/* Scheduled campaigns */
 .wsscd-badge-status--scheduled {
     background: var(--wsscd-color-info-alpha-15);
     color: var(--wsscd-color-primary);
 }
 
-/* Expired campaigns */
 .wsscd-badge-status--expired {
     background: var(--wsscd-color-danger-lighter);
     color: var(--wsscd-color-danger-dark);
 }
 
-/* Draft campaigns */
 .wsscd-badge-status--draft {
     background: var(--wsscd-color-warning-lighter);
     color: var(--wsscd-color-warning-dark);
 }
 
-/* Paused campaigns */
 .wsscd-badge-status--paused {
     background: var(--wsscd-color-text-alpha-15);
     color: var(--wsscd-color-text-muted);
 }
 
 /* ==========================================================================
-   Health Check Badges
+   Health
    ========================================================================== */
 
-/* Healthy / No issues */
 .wsscd-badge-health--healthy {
     background: var(--wsscd-color-success-lighter);
     color: var(--wsscd-color-success);
 }
 
-/* Warning / Attention needed */
 .wsscd-badge-health--warning {
     background: var(--wsscd-color-warning-lighter);
     color: var(--wsscd-color-warning-dark);
 }
 
-/* Alert / Critical issue */
 .wsscd-badge-health--alert {
     background: var(--wsscd-color-danger-lighter);
     color: var(--wsscd-color-danger-dark);
 }
 
-/* Info / Informational */
 .wsscd-badge-health--info {
     background: var(--wsscd-color-info-alpha-15);
     color: var(--wsscd-color-primary);
 }
 
 /* ==========================================================================
-   Performance Badges
+   Performance
    ========================================================================== */
 
 .wsscd-badge--performance {
     font-variant-numeric: tabular-nums;
 }
 
-/* High performing */
 .wsscd-badge--high-performance {
     background: var(--wsscd-color-success-lighter);
     color: var(--wsscd-color-success);
 }
 
-/* Medium performing */
 .wsscd-badge--medium-performance {
     background: var(--wsscd-color-warning-lighter);
     color: var(--wsscd-color-warning-dark);
 }
 
-/* Low performing */
 .wsscd-badge--low-performance {
     background: var(--wsscd-color-danger-lighter);
     color: var(--wsscd-color-danger-dark);
 }
 
 /* ==========================================================================
-   Discount Type Badges
+   Discount type
    ========================================================================== */
 
 .wsscd-badge--percentage {
@@ -195,10 +179,9 @@
 }
 
 /* ==========================================================================
-   Product Selection Badges
+   Product
    ========================================================================== */
 
-/* Base product badge */
 .wsscd-badge-product {
     background-color: var(--wsscd-color-surface);
     color: var(--wsscd-color-text);
@@ -211,7 +194,6 @@
     opacity: 0.85;
 }
 
-/* Empty/Pending state */
 .wsscd-badge-product--empty {
     background-color: var(--wsscd-color-white);
     border-style: dashed;
@@ -224,23 +206,67 @@
 }
 
 /* ==========================================================================
-   PRO/FREE Feature Badges
+   Recurring
+   ========================================================================== */
+
+.wsscd-recurring-badge.wsscd-recurring-active {
+	background: var(--wsscd-color-success-lighter);
+	color: var(--wsscd-color-success-dark);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-success-border);
+}
+
+.wsscd-recurring-badge.wsscd-recurring-inactive {
+	background: var(--wsscd-color-surface);
+	color: var(--wsscd-color-text-muted);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+}
+
+.wsscd-recurring-badge.wsscd-recurring-child {
+	background: var(--wsscd-color-info-lighter);
+	color: var(--wsscd-color-info-dark);
+	border: var(--wsscd-border-width) solid var(--wsscd-alert-info-border);
+}
+
+.wsscd-recurring-badge:hover {
+	opacity: 0.9;
+	cursor: help;
+}
+
+/* ==========================================================================
+   Free shipping
+   ========================================================================== */
+
+.wsscd-free-shipping-badge {
+	gap: var(--wsscd-spacing-xxs);
+	padding: var(--wsscd-spacing-xxs) var(--wsscd-spacing-sm);
+	background: var(--wsscd-color-success-lighter);
+	color: var(--wsscd-color-success-dark);
+	border-radius: var(--wsscd-radius-sm);
+}
+
+.wsscd-free-shipping-badge::before {
+	content: "🚚";
+	font-size: 12px;
+}
+
+/* ==========================================================================
+   Pro/Free
    ========================================================================== */
 
 .wsscd-pro-badge,
 .wsscd-free-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--wsscd-spacing-xs);
-    padding: var(--wsscd-spacing-xs) var(--wsscd-spacing-md);
-    font-size: var(--wsscd-font-size-small);
-    font-weight: var(--wsscd-font-weight-semibold);
-    line-height: 1.5;
-    text-align: center;
-    white-space: nowrap;
-    border-radius: var(--wsscd-radius-md); /* 6px - consistent with status badges */
-    transition: var(--wsscd-transition-all);
-    letter-spacing: 0.01em;
+	display: inline-flex;
+	align-items: center;
+	gap: var(--wsscd-spacing-xs);
+	padding: var(--wsscd-spacing-xs) var(--wsscd-spacing-md);
+	font-size: var(--wsscd-font-size-small);
+	font-weight: var(--wsscd-font-weight-semibold);
+	line-height: 1.5;
+	text-align: center;
+	white-space: nowrap;
+	border-radius: var(--wsscd-radius-md);
+	transition: var(--wsscd-transition-all);
+	letter-spacing: 0.01em;
 }
 
 .wsscd-pro-badge {
@@ -258,10 +284,9 @@
 }
 
 /* ==========================================================================
-   Badge Variants (Reserved for future use)
+   Dot indicator
    ========================================================================== */
 
-/* Dot indicator */
 .wsscd-badge--with-dot::before {
     content: '';
     width: 6px;
@@ -272,7 +297,7 @@
 }
 
 /* ==========================================================================
-   Badge Groups
+   Groups
    ========================================================================== */
 
 .wsscd-badge-group {
@@ -282,7 +307,7 @@
 }
 
 /* ==========================================================================
-   Icon Support
+   Icons
    ========================================================================== */
 
 .wsscd-badge-status--active .wsscd-icon,
@@ -302,7 +327,7 @@
 }
 
 /* ==========================================================================
-   Interactive Badges
+   Clickable
    ========================================================================== */
 
 .wsscd-badge--clickable {
@@ -318,7 +343,6 @@
     opacity: 0.9;
 }
 
-/* Focus state for keyboard navigation */
 .wsscd-badge--clickable:focus {
     outline: none;
 }
@@ -330,10 +354,9 @@
 }
 
 /* ==========================================================================
-   WordPress Post Status Integration
+   Post status (WP integration)
    ========================================================================== */
 
-/* Apply theme colors to post status when opted-in */
 .wsscd-themed-badges .post-state {
     color: var(--wsscd-color-text-muted);
 }
@@ -347,7 +370,7 @@
 }
 
 /* ==========================================================================
-   Loading/Skeleton Badge
+   Loading
    ========================================================================== */
 
 .wsscd-badge--loading {

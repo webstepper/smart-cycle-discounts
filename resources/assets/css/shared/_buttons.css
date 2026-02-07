@@ -14,7 +14,7 @@
  */
 
 /* ==========================================================================
-   Base Button Styles
+   Base
    ========================================================================== */
 
 .wsscd-button,
@@ -49,7 +49,7 @@
 	appearance: none;
 }
 
-/* Visited state - prevent color change on anchor buttons */
+/* Visited - prevent color change on anchor buttons */
 a.wsscd-button:visited,
 a.wsscd-btn:visited,
 a.wsscd-button--secondary:visited,
@@ -68,7 +68,7 @@ a.wsscd-btn-danger:visited {
 	color: var(--wsscd-color-white);
 }
 
-/* Base hover/active - subtle darkening, preserve color against WP common.css a:hover/a:active */
+/* Base hover/active */
 .wsscd-button:hover,
 .wsscd-button:active,
 .wsscd-btn:hover,
@@ -77,28 +77,23 @@ a.wsscd-btn-danger:visited {
 	color: var(--wsscd-color-text);
 }
 
-/* Focus state - keyboard accessibility */
+/* Focus - keyboard accessibility (focus-visible + fallback for older browsers) */
 .wsscd-button:focus-visible,
-.wsscd-btn:focus-visible {
-	outline: 2px solid var(--wsscd-color-primary);
-	outline-offset: 2px;
-}
-
-/* Fallback for browsers without :focus-visible */
+.wsscd-btn:focus-visible,
 .wsscd-button:focus,
 .wsscd-btn:focus {
 	outline: 2px solid var(--wsscd-color-primary);
 	outline-offset: 2px;
 }
 
-/* Active press state */
+/* Active press */
 .wsscd-button:active,
 .wsscd-btn:active {
 	transform: translateY(1px);
 }
 
 /* ==========================================================================
-   Button Sizes
+   Sizes
    ========================================================================== */
 
 .wsscd-button--large,
@@ -116,10 +111,10 @@ a.wsscd-btn-danger:visited {
 }
 
 /* ==========================================================================
-   Filled Button Variants
+   Filled variants
    ========================================================================== */
 
-/* Shared filled button styles */
+/* Filled buttons - white text, semibold */
 .wsscd-button--primary,
 .wsscd-btn-primary,
 .button-primary.wsscd-themed,
@@ -134,7 +129,7 @@ a.wsscd-btn-danger:visited {
 	font-weight: var(--wsscd-font-weight-semibold);
 }
 
-/* Primary Button */
+/* Primary */
 .wsscd-button--primary,
 .wsscd-btn-primary,
 .button-primary.wsscd-themed {
@@ -163,7 +158,7 @@ a.wsscd-btn-danger:visited {
 	box-shadow: var(--wsscd-ring-focus);
 }
 
-/* Secondary Button */
+/* Secondary */
 .wsscd-button--secondary,
 .wsscd-btn-secondary,
 .button-secondary.wsscd-themed {
@@ -194,7 +189,7 @@ a.wsscd-btn-danger:visited {
 	box-shadow: var(--wsscd-ring-focus);
 }
 
-/* Success Button */
+/* Success */
 .wsscd-button--success,
 .wsscd-btn-success {
 	background: var(--wsscd-color-success);
@@ -218,7 +213,7 @@ a.wsscd-btn-danger:visited {
 	box-shadow: var(--wsscd-ring-success);
 }
 
-/* Warning Button */
+/* Warning */
 .wsscd-button--warning,
 .wsscd-btn-warning {
 	background: var(--wsscd-color-warning);
@@ -243,7 +238,7 @@ a.wsscd-btn-danger:visited {
 	box-shadow: var(--wsscd-ring-warning);
 }
 
-/* Danger Button */
+/* Danger */
 .wsscd-button--danger,
 .wsscd-btn-danger,
 .button-link-delete.wsscd-themed {
@@ -273,7 +268,7 @@ a.wsscd-btn-danger:visited {
 }
 
 /* ==========================================================================
-   Ghost/Outline Buttons
+   Ghost variants
    ========================================================================== */
 
 .wsscd-button--ghost,
@@ -293,7 +288,7 @@ a.wsscd-btn-danger:visited {
 	filter: none;
 }
 
-/* Ghost Primary */
+/* Ghost primary */
 .wsscd-button--ghost-primary {
 	background: transparent;
 	border-color: var(--wsscd-color-primary);
@@ -307,7 +302,7 @@ a.wsscd-btn-danger:visited {
 	filter: none;
 }
 
-/* Ghost Success */
+/* Ghost success */
 .wsscd-button--ghost-success {
 	background: transparent;
 	border-color: var(--wsscd-color-success);
@@ -321,7 +316,7 @@ a.wsscd-btn-danger:visited {
 	filter: none;
 }
 
-/* Ghost Warning */
+/* Ghost warning */
 .wsscd-button--ghost-warning {
 	background: transparent;
 	border-color: var(--wsscd-color-warning);
@@ -335,7 +330,7 @@ a.wsscd-btn-danger:visited {
 	filter: none;
 }
 
-/* Ghost Danger */
+/* Ghost danger */
 .wsscd-button--ghost-danger {
 	background: transparent;
 	border-color: var(--wsscd-color-border);
@@ -363,7 +358,7 @@ a.wsscd-btn-danger:visited {
 }
 
 /* ==========================================================================
-   Link Buttons
+   Link variants
    ========================================================================== */
 
 .wsscd-button--link,
@@ -396,7 +391,7 @@ a.wsscd-btn-danger:visited {
 	border-radius: var(--wsscd-radius-sm);
 }
 
-/* Link Danger */
+/* Link danger */
 .wsscd-button--link-danger {
 	color: var(--wsscd-color-danger);
 }
@@ -407,10 +402,10 @@ a.wsscd-btn-danger:visited {
 }
 
 /* ==========================================================================
-   Button States
+   States
    ========================================================================== */
 
-/* Disabled state - explicit styling for better accessibility */
+/* Disabled state */
 .wsscd-button:disabled,
 .wsscd-button--disabled,
 .wsscd-btn:disabled,
@@ -423,34 +418,16 @@ a.wsscd-btn-danger:visited {
 	pointer-events: none;
 }
 
-/* Disabled primary button - ensure contrast */
-.wsscd-button--primary:disabled,
-.wsscd-button--primary.wsscd-button--disabled,
-.wsscd-btn-primary:disabled {
-	background-color: var(--wsscd-color-bg-disabled);
-	border-color: var(--wsscd-color-border-disabled);
-	color: var(--wsscd-color-text-disabled);
-}
-
-/* Disabled danger button */
-.wsscd-button--danger:disabled,
-.wsscd-button--danger.wsscd-button--disabled {
-	background-color: var(--wsscd-color-bg-disabled);
-	border-color: var(--wsscd-color-border-disabled);
-	color: var(--wsscd-color-text-disabled);
-}
-
-/* Disabled outline/secondary button */
+/* Disabled secondary (transparent background) */
 .wsscd-button--secondary:disabled,
 .wsscd-button--secondary.wsscd-button--disabled,
-.wsscd-button--outline:disabled,
-.wsscd-button--outline.wsscd-button--disabled {
+.wsscd-btn-secondary:disabled {
 	background-color: transparent;
 	border-color: var(--wsscd-color-border-disabled);
 	color: var(--wsscd-color-text-disabled);
 }
 
-/* Loading state */
+/* Loading */
 .wsscd-button--loading,
 .wsscd-btn-loading {
 	color: transparent !important;
@@ -474,7 +451,7 @@ a.wsscd-btn-danger:visited {
 	animation: wsscd-spin 0.8s linear infinite;
 }
 
-/* Loading spinner color for secondary/ghost buttons */
+/* Loading spinner - secondary/ghost use primary color */
 .wsscd-button--secondary.wsscd-button--loading::after,
 .wsscd-btn-secondary.wsscd-btn-loading::after,
 .wsscd-button--ghost.wsscd-button--loading::after,
@@ -484,7 +461,7 @@ a.wsscd-btn-danger:visited {
 }
 
 /* ==========================================================================
-   Button Groups
+   Groups
    ========================================================================== */
 
 .wsscd-button-group {
@@ -509,7 +486,6 @@ a.wsscd-btn-danger:visited {
 	border-radius: 0 var(--wsscd-radius-lg) var(--wsscd-radius-lg) 0;
 }
 
-/* Hover z-index for attached groups */
 .wsscd-button-group--attached .wsscd-button:hover {
 	z-index: 1;
 }
@@ -520,7 +496,7 @@ a.wsscd-btn-danger:visited {
 }
 
 /* ==========================================================================
-   Icon Support
+   Icons
    ========================================================================== */
 
 .wsscd-button .wsscd-icon,
@@ -541,7 +517,7 @@ a.wsscd-btn-danger:visited {
 	height: var(--wsscd-icon-medium);
 }
 
-/* Icon-only buttons */
+/* Icon-only */
 .wsscd-button--icon-only,
 .wsscd-btn-icon {
 	width: var(--wsscd-button-icon-size);
@@ -566,7 +542,7 @@ a.wsscd-btn-danger:visited {
 }
 
 /* ==========================================================================
-   Navigation Buttons (Wizard)
+   Wizard nav (wp-core-ui context)
    ========================================================================== */
 
 .wp-core-ui .wsscd-nav-btn--previous,
@@ -582,7 +558,7 @@ a.wsscd-btn-danger:visited {
 }
 
 /* ==========================================================================
-   Accessibility - Reduced Motion
+   Reduced motion
    ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
@@ -601,3 +577,4 @@ a.wsscd-btn-danger:visited {
 		animation: none;
 	}
 }
+

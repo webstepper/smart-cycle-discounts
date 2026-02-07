@@ -11,7 +11,7 @@
  */
 
 /* ==========================================================================
-   Priority Badge - Refined
+   Priority badge
    ========================================================================== */
 
 .wsscd-priority-badge {
@@ -56,7 +56,7 @@
 }
 
 /* ==========================================================================
-   Health Indicator - Refined
+   Health indicator
    ========================================================================== */
 
 .wsscd-health-indicator {
@@ -160,7 +160,7 @@
 }
 
 /* ==========================================================================
-   Performance Column
+   Performance column
    ========================================================================== */
 
 .wsscd-performance-metrics {
@@ -181,14 +181,8 @@
 }
 
 /* ==========================================================================
-   Products Column
+   Table
    ========================================================================== */
-
-/* ==========================================================================
-   Table Row Styling - Refined & Optimized
-   ========================================================================== */
-
-/* Base table improvements */
 .toplevel_page_wsscd-campaigns .wp-list-table,
 .wp-list-table.campaigns {
 	border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
@@ -198,7 +192,6 @@
 	overflow: hidden;
 }
 
-/* Table header and footer - refined spacing */
 .toplevel_page_wsscd-campaigns .wp-list-table thead th,
 .toplevel_page_wsscd-campaigns .wp-list-table tfoot th,
 .wp-list-table.campaigns thead th,
@@ -214,14 +207,12 @@
 	line-height: var(--wsscd-line-height-base);
 }
 
-/* Footer border adjustment */
 .toplevel_page_wsscd-campaigns .wp-list-table tfoot th,
 .wp-list-table.campaigns tfoot th {
 	border-bottom: none;
 	border-top: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
 }
 
-/* First header/footer cell */
 .toplevel_page_wsscd-campaigns .wp-list-table thead th:first-child,
 .toplevel_page_wsscd-campaigns .wp-list-table tfoot th:first-child,
 .wp-list-table.campaigns thead th:first-child,
@@ -229,7 +220,6 @@
 	padding-left: var(--wsscd-spacing-base);
 }
 
-/* Row styling - optimized spacing with fixed height */
 .toplevel_page_wsscd-campaigns .wp-list-table tbody tr,
 .wp-list-table.campaigns tbody tr {
 	background: var(--wsscd-color-white);
@@ -238,13 +228,11 @@
 	height: 68px;
 }
 
-/* Alternating row colors - subtle */
 .toplevel_page_wsscd-campaigns .wp-list-table tbody tr:nth-child(even),
 .wp-list-table.campaigns tbody tr:nth-child(even) {
 	background: var(--wsscd-color-surface);
 }
 
-/* Hover effect - refined */
 .toplevel_page_wsscd-campaigns .wp-list-table tbody tr:hover,
 .wp-list-table.campaigns tbody tr:hover {
 	background: var(--wsscd-color-primary-alpha-3);
@@ -252,7 +240,6 @@
 	transition: background-color var(--wsscd-transition-fast) var(--wsscd-ease-out);
 }
 
-/* No hover effect for empty state rows */
 .toplevel_page_wsscd-campaigns .wp-list-table tbody tr:has(.wsscd-empty-state):hover,
 .wp-list-table.campaigns tbody tr:has(.wsscd-empty-state):hover,
 .toplevel_page_wsscd-campaigns .wp-list-table tbody tr.wsscd-empty-state-row:hover,
@@ -266,7 +253,6 @@
 	background: var(--wsscd-color-primary-alpha-10);
 }
 
-/* Cell padding - refined vertical rhythm */
 .toplevel_page_wsscd-campaigns .wp-list-table td,
 .wp-list-table.campaigns td {
 	padding: var(--wsscd-padding-medium);
@@ -277,15 +263,14 @@
 	overflow: hidden;
 }
 
-/* First cell */
 .toplevel_page_wsscd-campaigns .wp-list-table td:first-child,
 .wp-list-table.campaigns td:first-child {
 	padding-left: var(--wsscd-spacing-base);
 }
 
-/* Campaign name cell - refined typography with text limiting */
 .toplevel_page_wsscd-campaigns .wp-list-table .column-name,
 .wp-list-table.campaigns .column-name {
+	position: relative;
 	font-weight: var(--wsscd-font-weight-medium);
 	max-height: 68px;
 	overflow: hidden;
@@ -308,7 +293,6 @@
 	color: var(--wp-admin-theme-color);
 }
 
-/* Name column wrapper - allow multi-line layout */
 .toplevel_page_wsscd-campaigns .wp-list-table .column-name strong,
 .wp-list-table.campaigns .column-name strong {
 	display: block;
@@ -316,7 +300,6 @@
 	margin-bottom: var(--wsscd-spacing-xxs);
 }
 
-/* Title on its own line */
 .toplevel_page_wsscd-campaigns .wp-list-table .column-name strong .row-title,
 .wp-list-table.campaigns .column-name strong .row-title {
 	display: inline;
@@ -334,7 +317,6 @@
 	white-space: nowrap;
 }
 
-/* Row actions - allow natural wrapping */
 .toplevel_page_wsscd-campaigns .wp-list-table .row-actions,
 .wp-list-table.campaigns .row-actions {
 	color: var(--wsscd-color-text-secondary);
@@ -345,12 +327,6 @@
 	margin: var(--wsscd-spacing-xxs) 0 0 0;
 	visibility: hidden;
 	display: block;
-}
-
-/* Show row actions inline after title */
-.toplevel_page_wsscd-campaigns .wp-list-table .column-name,
-.wp-list-table.campaigns .column-name {
-	position: relative;
 }
 
 .toplevel_page_wsscd-campaigns .wp-list-table tr:hover .row-actions,
@@ -368,12 +344,7 @@
 	text-decoration: none;
 }
 
-.toplevel_page_wsscd-campaigns .wp-list-table .row-actions a:hover,
-.wp-list-table.campaigns .row-actions a:hover {
-	/* Use default WordPress hover styling */
-}
-
-/* Status-based row highlighting - refined borders */
+/* Status-based row highlighting */
 .toplevel_page_wsscd-campaigns .wp-list-table tbody tr[data-status="active"],
 .wp-list-table.campaigns tbody tr[data-status="active"] {
 	border-left: var(--wsscd-border-width-accent) solid var(--wp-admin-theme-color);
@@ -408,7 +379,6 @@
 	padding-left: var(--wsscd-spacing-md);
 }
 
-/* Text styling - refined hierarchy with text limiting */
 .toplevel_page_wsscd-campaigns .wp-list-table td strong,
 .wp-list-table.campaigns td strong {
 	color: var(--wsscd-color-text);
@@ -416,7 +386,6 @@
 	font-size: var(--wsscd-font-size-base);
 }
 
-/* Exception for name column - handled separately */
 .toplevel_page_wsscd-campaigns .wp-list-table .column-name strong,
 .wp-list-table.campaigns .column-name strong {
 	color: var(--wsscd-color-text);
@@ -434,7 +403,6 @@
 	white-space: nowrap;
 }
 
-/* Checkbox column - optimized */
 .toplevel_page_wsscd-campaigns .wp-list-table .check-column,
 .wp-list-table.campaigns .check-column {
 	padding: var(--wsscd-padding-medium) var(--wsscd-spacing-sm) var(--wsscd-spacing-md) var(--wsscd-spacing-base);
@@ -448,24 +416,21 @@
 }
 
 /* ==========================================================================
-   Table Column Widths - Equalized
+   Column widths
    ========================================================================== */
 
-/* Use table-layout fixed for equal column distribution */
 .toplevel_page_wsscd-campaigns .wp-list-table,
 .wp-list-table.campaigns {
 	table-layout: fixed;
 	width: 100%;
 }
 
-/* Checkbox column - fixed small width */
 .toplevel_page_wsscd-campaigns .wp-list-table .column-cb,
 .wp-list-table.campaigns .column-cb {
 	width: 40px;
 	vertical-align: middle;
 }
 
-/* Name column - larger for primary content */
 .toplevel_page_wsscd-campaigns .wp-list-table .column-name,
 .wp-list-table.campaigns .column-name {
 	width: 30%;
@@ -473,7 +438,6 @@
 	vertical-align: middle;
 }
 
-/* Status column - medium width, left aligned */
 .toplevel_page_wsscd-campaigns .wp-list-table .column-status,
 .wp-list-table.campaigns .column-status {
 	width: 12%;
@@ -484,7 +448,6 @@
 	padding-right: 8px !important;
 }
 
-/* Schedule column - medium width, left aligned */
 .toplevel_page_wsscd-campaigns .wp-list-table .column-schedule,
 .wp-list-table.campaigns .column-schedule {
 	width: 18%;
@@ -496,7 +459,6 @@
 	overflow-wrap: break-word;
 }
 
-/* Health column - compact, left aligned */
 .toplevel_page_wsscd-campaigns .wp-list-table .column-health,
 .wp-list-table.campaigns .column-health {
 	width: 12%;
@@ -507,7 +469,6 @@
 	padding-right: 8px !important;
 }
 
-/* Actions column - wider for icon buttons */
 .toplevel_page_wsscd-campaigns .wp-list-table .column-actions,
 .wp-list-table.campaigns .column-actions {
 	width: 28%;
@@ -518,17 +479,15 @@
 }
 
 /* ==========================================================================
-   Responsive Adjustments - Optimized
+   Responsive (table)
    ========================================================================== */
 
 @media screen and (max-width: 1280px) {
-	/* Hide schedule column on smaller screens */
 	.toplevel_page_wsscd-campaigns .wp-list-table .column-schedule,
 	.wp-list-table.campaigns .column-schedule {
 		display: none;
 	}
 
-	/* Redistribute widths */
 	.toplevel_page_wsscd-campaigns .wp-list-table .column-name,
 	.wp-list-table.campaigns .column-name {
 		width: 35%;
@@ -550,52 +509,56 @@
 	}
 }
 
-
-/* Badge alignment in cells */
 .wp-list-table td .wsscd-priority-badge,
 .wp-list-table td .wsscd-health-indicator {
 	vertical-align: middle;
 }
 
-/* Recurring badges - campaigns list specific overrides */
 .wsscd-recurring-badge {
+	margin-left: var(--wsscd-spacing-sm);
+	vertical-align: middle;
 	max-width: 120px;
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
 
-/* Free Shipping Badge */
-.wsscd-free-shipping-badge {
-	display: inline-flex;
-	align-items: center;
-	gap: var(--wsscd-spacing-xxs);
-	padding: var(--wsscd-spacing-xxs) var(--wsscd-spacing-sm);
+.wp-list-table .column-name .row-title + .wsscd-recurring-badge {
 	margin-left: var(--wsscd-spacing-xs);
-	background: var(--wsscd-color-success-lighter);
-	color: var(--wsscd-color-success-dark);
+}
+
+.row-actions .stop-recurring {
+	color: var(--wsscd-color-danger);
+}
+
+.row-actions .stop-recurring:hover {
+	color: var(--wsscd-color-danger-dark);
+}
+
+.column-schedule .recurring-info {
+	display: block;
+	margin-top: var(--wsscd-spacing-sm);
 	font-size: var(--wsscd-font-size-small);
-	font-weight: var(--wsscd-font-weight-medium);
-	border-radius: var(--wsscd-radius-sm);
-	white-space: nowrap;
+	color: var(--wsscd-color-text-muted);
+}
+
+.column-schedule .recurring-info strong {
+	color: var(--wsscd-color-text);
+}
+
+.wsscd-free-shipping-badge {
+	margin-left: var(--wsscd-spacing-xs);
 	vertical-align: middle;
 }
 
-.wsscd-free-shipping-badge::before {
-	content: "🚚";
-	font-size: 12px;
-}
-
-/* Keep description visible even without hover */
 .toplevel_page_wsscd-campaigns .wp-list-table .column-name .description,
 .wp-list-table.campaigns .column-name .description {
 	opacity: 1;
 }
 
 /* ==========================================================================
-   Expandable Row Styles
+   Expandable rows
    ========================================================================== */
 
-/* Row expansion state - clickable rows open campaign panel */
 .wp-list-table.campaigns tbody tr {
 	cursor: pointer;
 	transition: background-color var(--wsscd-transition-base);
@@ -607,13 +570,12 @@
 	cursor: default;
 }
 
-	.wsscd-actions-section .button {
-		text-align: center;
-	}
+.wsscd-actions-section .button {
+	text-align: center;
 }
 
 /* ==========================================================================
-   Actions Column
+   Actions column
    ========================================================================== */
 
 .wsscd-actions-column {
@@ -624,20 +586,24 @@
 	flex-wrap: wrap;
 }
 
-/* Responsive: Stack buttons vertically on mobile */
 @media screen and (max-width: 782px) {
 	.wsscd-actions-column {
 		gap: var(--wsscd-spacing-sm);
 		flex-wrap: wrap;
 		justify-content: flex-start;
 	}
+
+	.wsscd-recurring-badge {
+		display: block;
+		margin: var(--wsscd-spacing-xs) 0;
+		width: fit-content;
+	}
 }
 
 /* ==========================================================================
-   Draft Notice - Enhanced
+   Draft notice
    ========================================================================== */
 
-/* Base notice container with animation */
 .wsscd-draft-notice {
 	position: relative;
 	display: flex;
@@ -654,7 +620,6 @@
 	animation: wsscd-notice-slide-in var(--wsscd-transition-slow) var(--wsscd-ease-out);
 }
 
-/* Slide-in animation */
 @keyframes wsscd-notice-slide-in {
 	from {
 		opacity: 0;
@@ -666,7 +631,6 @@
 	}
 }
 
-/* Notice paragraph - flexbox layout */
 .wsscd-draft-notice p {
 	margin: 0;
 	display: flex;
@@ -678,7 +642,6 @@
 	line-height: var(--wsscd-line-height-base);
 }
 
-/* Icon styling */
 .wsscd-draft-notice .wsscd-icon {
 	margin-right: var(--wsscd-spacing-xxs);
 	color: var(--wsscd-color-primary);
@@ -690,21 +653,18 @@
 	height: var(--wsscd-icon-medium);
 }
 
-/* Draft label */
 .wsscd-draft-label {
 	color: var(--wsscd-color-text-muted);
 	font-weight: var(--wsscd-font-weight-medium);
 	font-size: var(--wsscd-font-size-base);
 }
 
-/* Campaign name - prominent */
 .wsscd-draft-campaign-name {
 	color: var(--wsscd-color-text);
 	font-weight: var(--wsscd-font-weight-semibold);
 	font-size: var(--wsscd-font-size-medium);
 }
 
-/* Meta information (timestamp) */
 .wsscd-draft-meta {
 	display: inline-flex;
 	align-items: center;
@@ -717,7 +677,6 @@
 	margin-left: var(--wsscd-spacing-xs);
 }
 
-/* Expiration indicator */
 .wsscd-draft-expiration {
 	display: inline-flex;
 	align-items: center;
@@ -731,21 +690,18 @@
 	transition: var(--wsscd-transition-all);
 }
 
-/* Normal state - plenty of time (>30 minutes) */
 .wsscd-draft-expiration.wsscd-expiration-normal {
 	color: var(--wsscd-color-text-muted);
 	background: var(--wsscd-overlay-faint);
 	border-color: var(--wsscd-overlay-border);
 }
 
-/* Warning state - running low (15-30 minutes) */
 .wsscd-draft-expiration.wsscd-expiration-warning {
 	color: var(--wsscd-color-warning-dark);
 	background: var(--wsscd-alert-warning-bg);
 	border-color: var(--wsscd-color-warning-alpha-25);
 }
 
-/* Urgent state - critical (≤15 minutes) */
 .wsscd-draft-expiration.wsscd-expiration-urgent {
 	color: var(--wsscd-color-danger-dark);
 	background: var(--wsscd-alert-danger-bg);
@@ -753,7 +709,6 @@
 	font-weight: var(--wsscd-font-weight-semibold);
 }
 
-/* Actions container */
 .wsscd-draft-actions {
 	display: flex;
 	align-items: center;
@@ -762,7 +717,6 @@
 	flex-shrink: 0;
 }
 
-/* Draft action buttons - use shared button classes with size overrides */
 .wsscd-draft-actions .wsscd-button {
 	min-height: 28px;
 	padding: var(--wsscd-spacing-sm) var(--wsscd-padding-medium);
@@ -773,7 +727,6 @@
 	padding: var(--wsscd-spacing-sm) var(--wsscd-padding-compact);
 }
 
-/* Dismissible button styling */
 .wsscd-draft-notice .notice-dismiss {
 	position: absolute;
 	top: 50%;
@@ -788,19 +741,12 @@
 	color: var(--wsscd-color-primary);
 }
 
-/* ARIA and accessibility enhancements */
-.wsscd-draft-notice[role="status"] {
-	/* Screen reader announcements handled by role */
-}
-
-/* Focus states for accessibility */
 .wsscd-draft-notice a:focus {
 	outline: var(--wsscd-border-width-focus) solid var(--wsscd-color-primary);
 	outline-offset: var(--wsscd-spacing-xxs);
 	border-radius: var(--wsscd-radius-sm);
 }
 
-/* Responsive design - mobile optimization */
 @media screen and (max-width: 782px) {
 	.wsscd-draft-notice {
 		flex-direction: column;
@@ -840,7 +786,6 @@
 	}
 }
 
-/* Tablet optimization */
 @media screen and (min-width: 783px) and (max-width: 1024px) {
 	.wsscd-draft-notice p {
 		gap: var(--wsscd-spacing-xs);
@@ -851,7 +796,6 @@
 	}
 }
 
-/* High contrast mode support */
 @media (prefers-contrast: high) {
 	.wsscd-draft-notice {
 		border-width: var(--wsscd-border-width-thick);
@@ -863,14 +807,12 @@
 	}
 }
 
-/* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
 	.wsscd-draft-notice {
 		animation: none;
 	}
 }
 
-/* Print styles - simplify for printing */
 @media print {
 	.wsscd-draft-notice {
 		border: var(--wsscd-border-width) solid var(--wsscd-color-text);
@@ -884,7 +826,7 @@
 }
 
 /* ==========================================================================
-   Empty State - Professional Design
+   Empty state
    ========================================================================== */
 
 .wsscd-empty-state {
@@ -893,19 +835,28 @@
 	align-items: center;
 	justify-content: center;
 	text-align: center;
-	padding: var(--wsscd-spacing-xxl) var(--wsscd-spacing-xl);
+	padding: var(--wsscd-spacing-xxxl) var(--wsscd-spacing-xl);
 	min-height: 300px;
-	cursor: default; /* Override table row pointer cursor */
+	cursor: default;
+	background: linear-gradient(180deg, var(--wsscd-color-surface) 0%, var(--wsscd-color-white) 100%);
+	border-radius: var(--wsscd-radius-lg);
+	border: 1px solid var(--wsscd-color-border-light);
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
-/* Ensure parent row doesn't show pointer cursor for empty state */
+.wp-list-table tbody .wsscd-empty-state {
+	background: transparent;
+	border: none;
+	box-shadow: none;
+	border-radius: 0;
+}
+
 .wp-list-table tbody tr:has(.wsscd-empty-state),
 .wp-list-table tbody tr.wsscd-empty-state-row,
 .wp-list-table tbody tr .wsscd-empty-state {
 	cursor: default;
 }
 
-/* Prevent row click behavior on empty state parent */
 .wp-list-table tbody td:has(.wsscd-empty-state),
 .wp-list-table tbody tr.wsscd-empty-state-row td {
 	cursor: default;
@@ -915,48 +866,51 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	width: 80px;
-	height: 80px;
-	margin-bottom: var(--wsscd-spacing-lg);
-	background: var(--wsscd-color-surface);
+	width: 88px;
+	height: 88px;
+	margin-bottom: var(--wsscd-spacing-xl);
+	background: var(--wsscd-color-white);
+	border: 1px solid var(--wsscd-color-border-light);
 	border-radius: var(--wsscd-radius-full);
-	color: var(--wsscd-color-text-muted);
+	color: var(--wsscd-color-primary);
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .wsscd-empty-state__icon .wsscd-icon,
 .wsscd-empty-state__icon svg {
-	color: var(--wsscd-color-text-muted);
-	fill: var(--wsscd-color-text-muted);
-	opacity: 0.6;
+	color: var(--wsscd-color-primary);
+	fill: var(--wsscd-color-primary);
+	opacity: 0.9;
 }
 
 .wsscd-empty-state__title {
-	margin: 0 0 var(--wsscd-spacing-sm) 0;
-	font-size: var(--wsscd-font-size-xl);
+	margin: 0 0 var(--wsscd-spacing-md) 0;
+	font-size: var(--wsscd-font-size-xxl);
 	font-weight: var(--wsscd-font-weight-semibold);
 	color: var(--wsscd-color-text);
 	line-height: var(--wsscd-line-height-tight);
+	letter-spacing: -0.02em;
 }
 
 .wsscd-empty-state__description {
 	margin: 0 0 var(--wsscd-spacing-xl) 0;
-	max-width: 400px;
-	font-size: var(--wsscd-font-size-base);
+	max-width: 420px;
+	font-size: var(--wsscd-font-size-medium);
 	color: var(--wsscd-color-text-muted);
-	line-height: var(--wsscd-line-height-relaxed);
+	line-height: 1.6;
 }
 
 .wsscd-empty-state__actions {
 	display: flex;
-	gap: var(--wsscd-spacing-sm);
+	gap: var(--wsscd-spacing-md);
 	flex-wrap: wrap;
 	justify-content: center;
 }
 
-/* Ensure buttons have pointer cursor */
 .wsscd-empty-state__actions .wsscd-button,
 .wsscd-empty-state__actions a {
 	cursor: pointer;
+	margin-bottom: var(--wsscd-spacing-sm);
 }
 
 .wsscd-empty-state__actions .wsscd-button--large {
@@ -964,16 +918,16 @@
 	font-size: var(--wsscd-font-size-medium);
 }
 
-/* Responsive adjustments */
 @media screen and (max-width: 782px) {
 	.wsscd-empty-state {
-		padding: var(--wsscd-spacing-xl) var(--wsscd-spacing-md);
-		min-height: 250px;
+		padding: var(--wsscd-spacing-xxl) var(--wsscd-spacing-md);
+		min-height: 260px;
 	}
 
 	.wsscd-empty-state__icon {
-		width: 64px;
-		height: 64px;
+		width: 72px;
+		height: 72px;
+		margin-bottom: var(--wsscd-spacing-lg);
 	}
 
 	.wsscd-empty-state__icon .wsscd-icon,

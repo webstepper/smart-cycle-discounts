@@ -3,7 +3,7 @@ Contributors: webstepper
 Tags: discount rules, BOGO, bulk discount, tiered pricing, sale scheduler
 Requires at least: 6.4
 Tested up to: 6.9
-Stable tag: 1.5.69
+Stable tag: 1.5.70
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -430,6 +430,12 @@ Pro users can configure combination policies for each campaign. Choose whether y
 
 == Changelog ==
 
+= 1.5.70 =
+* New: WooCommerce block-based cart and checkout support - strikethrough pricing now displays correctly in block cart/checkout pages alongside classic templates.
+* Improvement: Added Store API extension to expose discount metadata for block-based cart and checkout rendering.
+* Improvement: Client-side currency formatting with full locale support, dark mode, and high contrast accessibility.
+* Improvement: Declared cart_checkout_blocks compatibility for WooCommerce 8.3+ feature detection.
+
 = 1.5.69 =
 * Visual improvements.
 
@@ -661,6 +667,9 @@ Pro users can configure combination policies for each campaign. Choose whether y
 * WordPress 6.4+ and WooCommerce 8.0+ support
 
 == Upgrade Notice ==
+
+= 1.5.70 =
+Adds full support for WooCommerce block-based cart and checkout. Discounted pricing now displays correctly with strikethrough in both classic and block cart/checkout pages. Recommended update for stores using WooCommerce 8.3+.
 
 = 1.5.69 =
 Visual improvements.

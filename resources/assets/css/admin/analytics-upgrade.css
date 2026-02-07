@@ -12,9 +12,11 @@
 
 /* PRO badge now uses shared badge helper from _badges.css (removed old CSS) */
 
-/* Upgrade Container */
+/* Upgrade Container – full width (no max-width constraint) */
 .wsscd-analytics-locked {
-	max-width: 1200px;
+	max-width: none;
+	width: 100%;
+	box-sizing: border-box;
 }
 
 .wsscd-upgrade-container {

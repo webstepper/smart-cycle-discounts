@@ -1,6 +1,8 @@
 <?php
 /**
- * Theme Color Inline Styles Class
+ * Theme Color Inline Styles
+ *
+ * Outputs :root CSS variables and component mappings in admin from WP/Woo theme colors.
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/assets/class-theme-color-inline-styles.php
@@ -12,13 +14,13 @@
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
+	exit;
 }
 
 /**
- * Theme Color Inline Styles Class
+ * Theme color inline styles.
  *
- * @since      1.0.0
+ * @since 1.0.0
  */
 class WSSCD_Theme_Color_Inline_Styles {
 
@@ -28,11 +30,7 @@ class WSSCD_Theme_Color_Inline_Styles {
 	 * @since 1.0.0
 	 */
 	public function init(): void {
-		// Hook into admin head with high priority to output early
 		add_action( 'admin_head', array( $this, 'print_theme_color_styles' ), 1 );
-
-		// Also hook into SCD's inline style action
-		add_action( 'wsscd_print_inline_style', array( $this, 'add_theme_colors_to_inline' ), 10, 2 );
 	}
 
 	/**
@@ -47,15 +45,12 @@ class WSSCD_Theme_Color_Inline_Styles {
 			return;
 		}
 
-		// Generate inline CSS
+		// Generate inline CSS (:root variables + component mappings).
 		$css = $this->generate_theme_color_css( $colors );
 
 		if ( ! empty( $css ) ) {
-			// Use wp_add_inline_style for WordPress.org compliance
-			// We need a handle - use wp-admin as it's always loaded in admin
 			wp_add_inline_style( 'wp-admin', $css );
 
-			// Add the JavaScript to mark colors as loaded using wp_add_inline_script
 			$js = 'document.addEventListener("DOMContentLoaded", function() {' .
 				'setTimeout(function() {' .
 				'if (document.body) { document.body.classList.add("wsscd-colors-loaded"); }' .
@@ -76,40 +71,28 @@ class WSSCD_Theme_Color_Inline_Styles {
 	private function generate_theme_color_css( array $colors ): string {
 		$css = ':root {' . "\n";
 
-		// Base colors - sanitize each color value before output
 		foreach ( $colors as $key => $value ) {
 			$sanitized_key   = $this->sanitize_css_property_name( $key );
 			$sanitized_value = $this->sanitize_css_color_value( $value );
-
-			// Skip if invalid
 			if ( empty( $sanitized_key ) || empty( $sanitized_value ) ) {
 				continue;
 			}
-
 			$css .= sprintf( '    --wsscd-color-%s: %s;' . "\n", $sanitized_key, $sanitized_value );
 		}
 
-		// Component-specific colors - sanitize each property and value
 		$component_mappings = $this->get_component_mappings( $colors );
 		foreach ( $component_mappings as $property => $value ) {
 			$sanitized_property = $this->sanitize_css_property_name( $property );
 			$sanitized_value    = $this->sanitize_css_color_value( $value );
-
-			// Skip if invalid
 			if ( empty( $sanitized_property ) || empty( $sanitized_value ) ) {
 				continue;
 			}
-
 			$css .= sprintf( '    %s: %s;' . "\n", $sanitized_property, $sanitized_value );
 		}
 
 		$css .= '}' . "\n";
 
-		$css .= "\n" . '/* Badge styles are now in shared/_badges.css */' . "\n";
-		$css .= "\n" . '/* Draft Notice styles are now in campaigns-list.css */' . "\n";
-
-		$css .= "\n" . '/* Prevent color transitions during initial load */' . "\n";
-		$css .= 'body:not(.wsscd-colors-loaded) * {' . "\n";
+		$css .= "\n" . 'body:not(.wsscd-colors-loaded) * {' . "\n";
 		$css .= '    transition-duration: 0s !important;' . "\n";
 		$css .= '}' . "\n";
 
@@ -143,14 +126,6 @@ class WSSCD_Theme_Color_Inline_Styles {
 		$mappings['--wsscd-form-toggle-on']      = $colors['success'] ?? '#00a32a';
 		$mappings['--wsscd-form-focus-shadow']   = $this->hex_to_rgba( $colors['primary'] ?? '#2271b1', 0.25 );
 
-		// Button colors
-		$mappings['--wsscd-button-primary']       = $colors['primary'] ?? '#2271b1';
-		$mappings['--wsscd-button-primary-hover'] = $colors['primary_dark'] ?? '#135e96';
-		$mappings['--wsscd-button-success']       = $colors['success'] ?? '#00a32a';
-		$mappings['--wsscd-button-success-hover'] = $colors['success_dark'] ?? '#008a20';
-		$mappings['--wsscd-button-danger']        = $colors['danger'] ?? '#d63638';
-		$mappings['--wsscd-button-danger-hover']  = $colors['danger_dark'] ?? '#b32d2e';
-
 		// Badge colors
 		$mappings['--wsscd-badge-active']    = $colors['success'] ?? '#00a32a';
 		$mappings['--wsscd-badge-inactive']  = $colors['text_muted'] ?? '#646970';
@@ -181,13 +156,24 @@ class WSSCD_Theme_Color_Inline_Styles {
 	 * Convert hex color to rgba.
 	 *
 	 * @since 1.0.0
-	 * @param string $hex Hex color.
-	 * @param float  $alpha Alpha value.
-	 * @return string RGBA color.
+	 * @param string $hex   Hex color.
+	 * @param float  $alpha Alpha (0–1).
+	 * @return string RGBA color string.
 	 */
 	private function hex_to_rgba( string $hex, float $alpha ): string {
-		$hex = str_replace( '#', '', $hex );
+		$rgb = $this->parse_hex_to_rgb( $hex );
+		return sprintf( 'rgba(%d, %d, %d, %s)', $rgb[0], $rgb[1], $rgb[2], $alpha );
+	}
 
+	/**
+	 * Parse hex color to RGB components.
+	 *
+	 * @since 1.0.0
+	 * @param string $hex Hex color (#fff or #ffffff).
+	 * @return int[] [r, g, b].
+	 */
+	private function parse_hex_to_rgb( string $hex ): array {
+		$hex = str_replace( '#', '', $hex );
 		if ( strlen( $hex ) === 3 ) {
 			$r = hexdec( substr( $hex, 0, 1 ) . substr( $hex, 0, 1 ) );
 			$g = hexdec( substr( $hex, 1, 1 ) . substr( $hex, 1, 1 ) );
@@ -197,20 +183,7 @@ class WSSCD_Theme_Color_Inline_Styles {
 			$g = hexdec( substr( $hex, 2, 2 ) );
 			$b = hexdec( substr( $hex, 4, 2 ) );
 		}
-
-		return sprintf( 'rgba(%d, %d, %d, %s)', $r, $g, $b, $alpha );
-	}
-
-	/**
-	 * Add theme colors to inline styles.
-	 *
-	 * @since 1.0.0
-	 * @param string $handle Style handle.
-	 * @param array  $style Style data.
-	 */
-	public function add_theme_colors_to_inline( string $handle, array $style ): void {
-		// This can be used to add theme colors to specific style handles
-		// For now, we're handling everything in the admin_head action
+		return array( $r, $g, $b );
 	}
 
 	/**
@@ -271,29 +244,16 @@ class WSSCD_Theme_Color_Inline_Styles {
 	 * Adjust color brightness.
 	 *
 	 * @since 1.0.0
-	 * @param string $color Hex color.
-	 * @param int    $percent Percentage to adjust (-100 to 100).
+	 * @param string $color   Hex color.
+	 * @param int    $percent Percentage (-100 to 100).
 	 * @return string Adjusted hex color.
 	 */
 	private function adjust_color_brightness( string $color, int $percent ): string {
-		$color = str_replace( '#', '', $color );
-
-		if ( strlen( $color ) === 3 ) {
-			$r = hexdec( substr( $color, 0, 1 ) . substr( $color, 0, 1 ) );
-			$g = hexdec( substr( $color, 1, 1 ) . substr( $color, 1, 1 ) );
-			$b = hexdec( substr( $color, 2, 1 ) . substr( $color, 2, 1 ) );
-		} else {
-			$r = hexdec( substr( $color, 0, 2 ) );
-			$g = hexdec( substr( $color, 2, 2 ) );
-			$b = hexdec( substr( $color, 4, 2 ) );
-		}
-
-		// Adjust brightness
-		$r = max( 0, min( 255, $r + ( $r * $percent / 100 ) ) );
-		$g = max( 0, min( 255, $g + ( $g * $percent / 100 ) ) );
-		$b = max( 0, min( 255, $b + ( $b * $percent / 100 ) ) );
-
-		return '#' . sprintf( '%02x%02x%02x', $r, $g, $b );
+		$rgb = $this->parse_hex_to_rgb( $color );
+		$r = max( 0, min( 255, $rgb[0] + ( $rgb[0] * $percent / 100 ) ) );
+		$g = max( 0, min( 255, $rgb[1] + ( $rgb[1] * $percent / 100 ) ) );
+		$b = max( 0, min( 255, $rgb[2] + ( $rgb[2] * $percent / 100 ) ) );
+		return '#' . sprintf( '%02x%02x%02x', (int) $r, (int) $g, (int) $b );
 	}
 
 	/**

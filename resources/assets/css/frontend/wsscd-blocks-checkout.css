@@ -1,0 +1,43 @@
+/**
+ * WooCommerce Blocks Checkout Styles
+ *
+ * Styles for discounted items in block-based cart and checkout.
+ *
+ * @package    WSSCD_Plugin
+ * @since      1.5.70
+ */
+
+/**
+ * Discounted item styling
+ */
+.wsscd-discounted-item del {
+	opacity: 0.6;
+	text-decoration: line-through;
+	font-weight: normal;
+	margin-right: 0.5em;
+}
+
+.wsscd-discounted-item ins {
+	text-decoration: none;
+	font-weight: bold;
+	color: #2e7d32; /* Green color for savings */
+}
+
+/**
+ * High contrast mode support
+ */
+@media (prefers-contrast: high) {
+	.wsscd-discounted-item del {
+		opacity: 1;
+		text-decoration: line-through double;
+	}
+}
+
+/**
+ * Dark mode support
+ */
+@media (prefers-color-scheme: dark) {
+	.wsscd-discounted-item ins {
+		color: #66bb6a; /* Lighter green for dark mode */
+	}
+}
