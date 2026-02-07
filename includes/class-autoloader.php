@@ -152,6 +152,7 @@ class WSSCD_Autoloader {
 		'WSSCD_WC_Coupon_Restriction'        => 'integrations/woocommerce/class-wc-coupon-restriction.php',
 		'WSSCD_WC_Free_Shipping_Handler'     => 'integrations/woocommerce/class-wc-free-shipping-handler.php',
 		'WSSCD_WC_Blocks_Integration'        => 'integrations/woocommerce/class-wc-blocks-integration.php',
+		'WSSCD_WC_Subscription_Handler'      => 'integrations/woocommerce/class-wc-subscription-handler.php',
 
 		'WSSCD_Blocks_Manager'               => 'integrations/blocks/class-blocks-manager.php',
 		'WSSCD_Email_Manager'                => 'integrations/email/class-email-manager.php',

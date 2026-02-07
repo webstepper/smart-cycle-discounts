@@ -51,6 +51,9 @@ class WSSCD_Feature_Gate {
 		'discount_type_bogo'                 => 'pro',
 		'discount_type_spend_threshold'      => 'pro',
 
+		// Subscription controls (PRO-only)
+		'subscription_controls'              => 'pro',
+
 		// Email notification types (USED via can_send_notification)
 		// FREE = reactive (after event), PRO = proactive (before event / insights)
 		'notification_campaign_started'      => 'free',
@@ -212,6 +215,19 @@ class WSSCD_Feature_Gate {
 	 */
 	public function can_use_discount_configurations() {
 		return $this->can_use_feature( 'discount_configurations' );
+	}
+
+	/**
+	 * Check if user can use subscription discount controls.
+	 *
+	 * Subscription controls include: discount target selection
+	 * (recurring/sign-up fee/both) and renewal limits.
+	 *
+	 * @since    1.6.0
+	 * @return   bool    True if user can use subscription controls.
+	 */
+	public function can_use_subscription_controls() {
+		return $this->can_use_feature( 'subscription_controls' );
 	}
 
 	/**

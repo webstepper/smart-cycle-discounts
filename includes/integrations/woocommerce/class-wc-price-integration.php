@@ -59,6 +59,15 @@ class WSSCD_WC_Price_Integration {
 	private ?object $logger;
 
 	/**
+	 * Subscription handler instance.
+	 *
+	 * @since    1.6.0
+	 * @access   private
+	 * @var      WSSCD_WC_Subscription_Handler|null    $subscription_handler    Subscription handler.
+	 */
+	private ?WSSCD_WC_Subscription_Handler $subscription_handler;
+
+	/**
 	 * Recursion prevention flag.
 	 *
 	 * @since    1.0.0
@@ -71,18 +80,21 @@ class WSSCD_WC_Price_Integration {
 	 * Initialize price integration.
 	 *
 	 * @since    1.0.0
-	 * @param    WSSCD_WC_Discount_Query_Service   $discount_query    Discount query service.
-	 * @param    WSSCD_Customer_Usage_Manager|null $usage_manager     Usage manager.
-	 * @param    object|null                     $logger            Logger.
+	 * @param    WSSCD_WC_Discount_Query_Service        $discount_query         Discount query service.
+	 * @param    WSSCD_Customer_Usage_Manager|null       $usage_manager          Usage manager.
+	 * @param    object|null                             $logger                 Logger.
+	 * @param    WSSCD_WC_Subscription_Handler|null      $subscription_handler   Subscription handler.
 	 */
 	public function __construct(
 		WSSCD_WC_Discount_Query_Service $discount_query,
 		?WSSCD_Customer_Usage_Manager $usage_manager = null,
-		?object $logger = null
+		?object $logger = null,
+		?WSSCD_WC_Subscription_Handler $subscription_handler = null
 	) {
-		$this->discount_query = $discount_query;
-		$this->usage_manager  = $usage_manager;
-		$this->logger         = $logger;
+		$this->discount_query       = $discount_query;
+		$this->usage_manager        = $usage_manager;
+		$this->logger               = $logger;
+		$this->subscription_handler = $subscription_handler;
 	}
 
 	/**
@@ -103,6 +115,11 @@ class WSSCD_WC_Price_Integration {
 
 		// Cart price hooks
 		add_action( 'woocommerce_before_calculate_totals', array( $this, 'modify_cart_item_prices' ), 10, 1 );
+
+		// Subscription sign-up fee hook (Pro feature).
+		if ( $this->subscription_handler && wsscd_fs()->is__premium_only() ) {
+			add_filter( 'woocommerce_subscriptions_product_sign_up_fee', array( $this, 'modify_signup_fee__premium_only' ), 10, 2 );
+		}
 	}
 
 	/**
@@ -156,6 +173,18 @@ class WSSCD_WC_Price_Integration {
 				$discount_info = $this->discount_query->get_discount_info( $product_id, array( 'quantity' => 1 ) );
 
 				if ( $discount_info ) {
+					// For subscription products with Pro controls: skip recurring price
+					// discount if target is sign_up fee only.
+					if ( $this->subscription_handler
+						&& WSSCD_WC_Subscription_Handler::is_subscription( $product )
+					) {
+						$discount_target = $discount_info['campaign_data']['subscription_discount_target'] ?? 'recurring';
+						if ( 'sign_up' === $discount_target ) {
+							$this->processing = false;
+							return strval( $price );
+						}
+					}
+
 					$this->processing = false;
 					return strval( $discount_info['discounted_price'] );
 				}
@@ -215,6 +244,17 @@ class WSSCD_WC_Price_Integration {
 				$discount_info = $this->discount_query->get_discount_info( $product_id, array( 'quantity' => 1 ) );
 
 				if ( $discount_info ) {
+					// Skip recurring price discount if target is sign_up fee only.
+					if ( $this->subscription_handler
+						&& WSSCD_WC_Subscription_Handler::is_subscription( $product )
+					) {
+						$discount_target = $discount_info['campaign_data']['subscription_discount_target'] ?? 'recurring';
+						if ( 'sign_up' === $discount_target ) {
+							$this->processing = false;
+							return strval( $sale_price );
+						}
+					}
+
 					$this->processing = false;
 					return strval( $discount_info['discounted_price'] );
 				}
@@ -268,11 +308,24 @@ class WSSCD_WC_Price_Integration {
 				$discount_info = $this->discount_query->get_discount_info( $product_id );
 
 				if ( $discount_info ) {
-					$regular_price    = floatval( $product->get_regular_price() );
-					$discounted_price = floatval( $discount_info['discounted_price'] );
+					// Skip recurring price HTML if target is sign_up fee only.
+					$skip_html = false;
+					if ( $this->subscription_handler
+						&& WSSCD_WC_Subscription_Handler::is_subscription( $product )
+					) {
+						$discount_target = $discount_info['campaign_data']['subscription_discount_target'] ?? 'recurring';
+						if ( 'sign_up' === $discount_target ) {
+							$skip_html = true;
+						}
+					}
 
-					if ( $regular_price > $discounted_price ) {
-						$html = wc_format_sale_price( $regular_price, $discounted_price );
+					if ( ! $skip_html ) {
+						$regular_price    = floatval( $product->get_regular_price() );
+						$discounted_price = floatval( $discount_info['discounted_price'] );
+
+						if ( $regular_price > $discounted_price ) {
+							$html = wc_format_sale_price( $regular_price, $discounted_price );
+						}
 					}
 				}
 			}
@@ -349,6 +402,17 @@ class WSSCD_WC_Price_Integration {
 				);
 
 				$discount_info = $this->discount_query->get_discount_info( $product_id, $context );
+
+				// For subscriptions with sign_up-only target, skip recurring price discount in cart.
+				if ( $discount_info
+					&& $this->subscription_handler
+					&& WSSCD_WC_Subscription_Handler::is_subscription( $product )
+				) {
+					$discount_target = $discount_info['campaign_data']['subscription_discount_target'] ?? 'recurring';
+					if ( 'sign_up' === $discount_target ) {
+						$discount_info = null;
+					}
+				}
 
 				// Apply discount if eligible. SCD always calculates from regular price; when SCD
 				// does not apply, use WooCommerce price (sale if on sale, else regular).
@@ -428,6 +492,79 @@ class WSSCD_WC_Price_Integration {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Modify subscription sign-up fee based on active discounts (Pro feature).
+	 *
+	 * Hooked to 'woocommerce_subscriptions_product_sign_up_fee' filter.
+	 * Only applies when the campaign's subscription_discount_target includes sign-up fee.
+	 * Stripped from the free version by Freemius __premium_only suffix.
+	 *
+	 * @since    1.6.0
+	 * @param    mixed $fee        Original sign-up fee.
+	 * @param    mixed $product    Product object.
+	 * @return   float              Modified sign-up fee.
+	 */
+	public function modify_signup_fee__premium_only( $fee, $product ): float {
+		$fee = floatval( $fee );
+
+		if ( $fee <= 0 ) {
+			return $fee;
+		}
+
+		if ( $this->processing ) {
+			return $fee;
+		}
+
+		if ( ! $product instanceof WC_Product ) {
+			return $fee;
+		}
+
+		// Skip in admin context.
+		if ( is_admin() && ! wp_doing_ajax() ) {
+			return $fee;
+		}
+
+		$this->processing = true;
+
+		try {
+			$product_id = $product->get_id();
+
+			if ( $this->discount_query->has_active_discount( $product_id ) ) {
+				$discount_info = $this->discount_query->get_discount_info( $product_id, array( 'quantity' => 1 ) );
+
+				if ( $discount_info ) {
+					// Check if campaign targets sign-up fee.
+					$campaign_data   = $discount_info['campaign_data'] ?? array();
+					$discount_target = $campaign_data['subscription_discount_target'] ?? 'recurring';
+
+					if ( in_array( $discount_target, array( 'sign_up', 'both' ), true ) ) {
+						// Apply same discount logic to sign-up fee.
+						$discount_type  = $discount_info['type'] ?? 'percentage';
+						$discount_value = $discount_info['value'] ?? 0;
+
+						if ( 'percentage' === $discount_type && $discount_value > 0 ) {
+							$fee = $fee - ( $fee * ( $discount_value / 100 ) );
+						} elseif ( 'fixed' === $discount_type && $discount_value > 0 ) {
+							$fee = max( 0, $fee - $discount_value );
+						}
+					}
+				}
+			}
+		} catch ( Exception $e ) {
+			$this->log(
+				'error',
+				'Failed to modify subscription sign-up fee',
+				array(
+					'product_id' => $product->get_id(),
+					'error'      => $e->getMessage(),
+				)
+			);
+		}
+
+		$this->processing = false;
+		return $fee;
 	}
 
 	/**

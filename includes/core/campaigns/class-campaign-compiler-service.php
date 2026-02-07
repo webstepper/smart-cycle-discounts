@@ -178,6 +178,14 @@ class WSSCD_Campaign_Compiler_Service {
 			$data['discount_rules']['threshold_mode'] = $data['threshold_mode'] ?? 'percentage';
 		}
 
+		// Subscription settings (Pro feature)
+		if ( isset( $data['subscription_discount_target'] ) ) {
+			$data['discount_rules']['subscription_discount_target'] = $data['subscription_discount_target'];
+		}
+		if ( isset( $data['subscription_renewal_limit'] ) ) {
+			$data['discount_rules']['subscription_renewal_limit'] = (int) $data['subscription_renewal_limit'];
+		}
+
 		return $data;
 	}
 
@@ -270,6 +278,14 @@ class WSSCD_Campaign_Compiler_Service {
 			if ( isset( $discount_rules['thresholds'] ) && is_array( $discount_rules['thresholds'] ) ) {
 				$data['thresholds']     = $discount_rules['thresholds'];
 				$data['threshold_mode'] = $discount_rules['threshold_mode'] ?? 'percentage';
+			}
+
+			// Subscription Settings (Pro feature)
+			if ( isset( $discount_rules['subscription_discount_target'] ) ) {
+				$data['subscription_discount_target'] = $discount_rules['subscription_discount_target'];
+			}
+			if ( isset( $discount_rules['subscription_renewal_limit'] ) ) {
+				$data['subscription_renewal_limit'] = $discount_rules['subscription_renewal_limit'];
 			}
 		}
 
@@ -837,6 +853,14 @@ class WSSCD_Campaign_Compiler_Service {
 
 		if ( isset( $data['stack_with_others'] ) ) {
 			$config['stack_with_others'] = (bool) $data['stack_with_others'];
+		}
+
+		// Subscription settings (Pro feature)
+		if ( isset( $data['subscription_discount_target'] ) && 'recurring' !== $data['subscription_discount_target'] ) {
+			$config['subscription_discount_target'] = sanitize_text_field( $data['subscription_discount_target'] );
+		}
+		if ( isset( $data['subscription_renewal_limit'] ) && (int) $data['subscription_renewal_limit'] > 0 ) {
+			$config['subscription_renewal_limit'] = (int) $data['subscription_renewal_limit'];
 		}
 
 		return $config;

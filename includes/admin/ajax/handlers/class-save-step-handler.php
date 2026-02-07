@@ -379,6 +379,12 @@ class WSSCD_Save_Step_Handler extends WSSCD_Abstract_Ajax_Handler {
 			$data['apply_to_sale_items'] = true;  // Free users must apply to sale items.
 		}
 
+		// Strip subscription controls for free users on discounts step.
+		if ( 'discounts' === $step && ! $this->feature_gate->can_use_subscription_controls() ) {
+			unset( $data['subscription_discount_target'] );
+			unset( $data['subscription_renewal_limit'] );
+		}
+
 		// Note: Recurring campaigns are FREE - no stripping needed for schedule step.
 
 		// Strip advanced filters for free users on products step.

@@ -1079,6 +1079,136 @@ ob_start();
         ) );
         ?>
 
+        <!-- Subscription Discount Settings (only when WC Subscriptions is active) -->
+        <?php if ( class_exists( 'WC_Subscriptions_Product' ) ) : ?>
+        <?php
+        $subscription_discount_target = $step_data['subscription_discount_target'] ?? 'recurring';
+        $subscription_renewal_limit = $step_data['subscription_renewal_limit'] ?? 0;
+
+        if ( ! $has_pro_access ) :
+            // Free users: show promotional locked card
+            ob_start();
+            ?>
+            <div class="wsscd-pro-feature-locked">
+                <div class="wsscd-pro-feature-locked__content">
+                    <?php echo wp_kses_post( WSSCD_Badge_Helper::pro_badge( __( 'PRO Feature', 'smart-cycle-discounts' ) ) ); ?>
+                    <h4 class="wsscd-pro-feature-locked__title">
+                        <?php esc_html_e( 'Subscription Discount Controls', 'smart-cycle-discounts' ); ?>
+                    </h4>
+                    <p class="wsscd-pro-feature-locked__description">
+                        <?php esc_html_e( 'Fine-tune how discounts apply to subscription products for maximum flexibility.', 'smart-cycle-discounts' ); ?>
+                    </p>
+                    <ul class="wsscd-pro-feature-locked__features">
+                        <li><?php WSSCD_Icon_Helper::render( 'yes', array( 'size' => 14 ) ); ?> <?php esc_html_e( 'Choose to discount recurring price, sign-up fee, or both', 'smart-cycle-discounts' ); ?></li>
+                        <li><?php WSSCD_Icon_Helper::render( 'yes', array( 'size' => 14 ) ); ?> <?php esc_html_e( 'Limit discounts to the first X renewal payments', 'smart-cycle-discounts' ); ?></li>
+                        <li><?php WSSCD_Icon_Helper::render( 'yes', array( 'size' => 14 ) ); ?> <?php esc_html_e( 'Attract subscribers with introductory pricing', 'smart-cycle-discounts' ); ?></li>
+                    </ul>
+                    <?php
+                    WSSCD_Button_Helper::primary(
+                        __( 'Upgrade to Pro', 'smart-cycle-discounts' ),
+                        array(
+                            'size'    => 'medium',
+                            'href'    => esc_url( $upgrade_url ),
+                            'classes' => array( 'wsscd-pro-feature-locked__upgrade-btn' ),
+                        )
+                    );
+                    ?>
+                </div>
+            </div>
+            <?php
+            $subscription_content = ob_get_clean();
+
+            wsscd_wizard_card( array(
+                'title'      => __( 'Subscription Discount Settings', 'smart-cycle-discounts' ),
+                'icon'       => 'update',
+                'badge'      => array( 'text' => __( 'PRO', 'smart-cycle-discounts' ), 'type' => 'pro' ),
+                'subtitle'   => __( 'Control how discounts apply to WooCommerce Subscription products.', 'smart-cycle-discounts' ),
+                'content'    => $subscription_content,
+                'id'         => 'subscription-settings-card',
+                'class'      => 'wsscd-wizard-card--locked',
+                'help_topic' => 'card-subscription-settings',
+            ) );
+        endif;
+        ?>
+
+        <?php if ( wsscd_fs()->is__premium_only() ) : ?>
+        <?php if ( $has_pro_access ) : ?>
+        <?php
+            // Pro users: show functional settings card
+            ob_start();
+        ?>
+            <div class="wsscd-subscription-settings-section">
+                <p class="wsscd-field-help-text">
+                    <?php esc_html_e( 'These settings only apply to subscription products in your campaign. Regular products are unaffected.', 'smart-cycle-discounts' ); ?>
+                </p>
+
+                <!-- Subscription Discount Target -->
+                <div class="wsscd-field-group">
+                    <label for="subscription_discount_target" class="wsscd-field-label">
+                        <?php esc_html_e( 'Discount Target', 'smart-cycle-discounts' ); ?>
+                    </label>
+                    <?php
+                    WSSCD_Tooltip_Helper::render(
+                        __( 'Choose which subscription price component to discount. The recurring price is the amount charged each billing period. The sign-up fee is a one-time charge at initial purchase.', 'smart-cycle-discounts' )
+                    );
+                    ?>
+                    <select id="subscription_discount_target" name="subscription_discount_target" class="wsscd-field-select">
+                        <option value="recurring" <?php selected( $subscription_discount_target, 'recurring' ); ?>>
+                            <?php esc_html_e( 'Recurring price only', 'smart-cycle-discounts' ); ?>
+                        </option>
+                        <option value="sign_up" <?php selected( $subscription_discount_target, 'sign_up' ); ?>>
+                            <?php esc_html_e( 'Sign-up fee only', 'smart-cycle-discounts' ); ?>
+                        </option>
+                        <option value="both" <?php selected( $subscription_discount_target, 'both' ); ?>>
+                            <?php esc_html_e( 'Both sign-up fee and recurring', 'smart-cycle-discounts' ); ?>
+                        </option>
+                    </select>
+                </div>
+
+                <!-- Subscription Renewal Limit -->
+                <div class="wsscd-field-group">
+                    <label for="subscription_renewal_limit" class="wsscd-field-label">
+                        <?php esc_html_e( 'Limit to First X Renewals', 'smart-cycle-discounts' ); ?>
+                    </label>
+                    <?php
+                    WSSCD_Tooltip_Helper::render(
+                        __( 'Limit the discount to the first X renewal payments. After this many renewals, the subscription returns to full price. Set to 0 for unlimited (discount applies as long as campaign is active).', 'smart-cycle-discounts' )
+                    );
+                    ?>
+                    <input type="number"
+                           id="subscription_renewal_limit"
+                           name="subscription_renewal_limit"
+                           value="<?php echo esc_attr( $subscription_renewal_limit ); ?>"
+                           min="0"
+                           max="999"
+                           step="1"
+                           class="wsscd-field-number"
+                           placeholder="0">
+                    <p class="wsscd-field-description">
+                        <?php esc_html_e( '0 = unlimited. Discount applies as long as the campaign is active.', 'smart-cycle-discounts' ); ?>
+                    </p>
+                </div>
+            </div>
+        <?php
+            $subscription_content = ob_get_clean();
+
+            wsscd_wizard_card( array(
+                'title'      => __( 'Subscription Discount Settings', 'smart-cycle-discounts' ),
+                'icon'       => 'update',
+                'badge'      => array(
+                    'text' => __( 'Optional', 'smart-cycle-discounts' ),
+                    'type' => 'optional',
+                ),
+                'subtitle'   => __( 'Control how discounts apply to WooCommerce Subscription products.', 'smart-cycle-discounts' ),
+                'content'    => $subscription_content,
+                'id'         => 'subscription-settings-card',
+                'help_topic' => 'card-subscription-settings',
+            ) );
+        ?>
+        <?php endif; ?>
+        <?php endif; ?>
+        <?php endif; ?>
+
         <!-- User Role Targeting -->
         <?php
         // Get user roles config from step data.
@@ -1660,7 +1790,10 @@ wsscd_wizard_state_script('discounts', array(
     'free_shipping_config' => $free_shipping_config,
     // User Role Targeting
     'user_roles_mode' => $user_roles_mode,
-    'user_roles' => $user_roles
+    'user_roles' => $user_roles,
+    // Subscription Settings
+    'subscription_discount_target' => $subscription_discount_target ?? 'recurring',
+    'subscription_renewal_limit' => $subscription_renewal_limit ?? 0
 ), array(
     'selected_products' => $wsscd_discount_step_data['selected_products'] ?? array(),
     'currency_data' => $currency_data

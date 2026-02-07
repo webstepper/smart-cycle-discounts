@@ -1577,6 +1577,9 @@ class WSSCD_Asset_Localizer {
 			'can_use_bogo'                  => $feature_gate->can_use_discount_type( 'bogo' ),
 			'can_use_spend_threshold'       => $feature_gate->can_use_discount_type( 'spend_threshold' ),
 
+			// Subscription controls (Pro).
+			'can_use_subscription_controls' => $feature_gate->can_use_subscription_controls(),
+
 			// Upgrade URL for upsell prompts.
 			'upgrade_url'                   => $feature_gate->get_upgrade_url(),
 		);

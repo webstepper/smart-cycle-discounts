@@ -142,7 +142,7 @@ class WSSCD_Condition_Engine {
 			'type'     => 'select',
 			'label'    => 'Product Type',
 			'callback' => 'get_type',
-			'options'  => array( 'simple', 'variable', 'grouped', 'external' ),
+			'options'  => array( 'simple', 'variable', 'grouped', 'external', 'subscription', 'variable-subscription' ),
 		),
 
 		// Shipping & Tax

@@ -3,7 +3,7 @@ Contributors: webstepper
 Tags: discount rules, BOGO, bulk discount, tiered pricing, sale scheduler
 Requires at least: 6.4
 Tested up to: 6.9
-Stable tag: 1.5.70
+Stable tag: 1.6.0
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -139,6 +139,16 @@ Unlock discounts when customers reach a minimum cart value:
 
 Proven to increase average order value by 20-45%. Customers add more to their cart to unlock the next discount tier.
 
+**WooCommerce Subscriptions Support**
+
+Subscription products work with campaigns out of the box - recurring prices are discounted automatically on the free tier. Pro unlocks advanced subscription controls:
+
+* **Discount target selection** - Choose to discount the recurring price, the sign-up fee, or both independently
+* **Renewal limits** - Limit discounts to the first X renewal payments (e.g., "20% off for 3 months, then full price")
+* **Automatic tracking** - Renewal count tracked per subscription, discount removed automatically when limit is reached
+
+No other discount plugin offers automated campaign-based subscription discounts with renewal tracking.
+
 **Also included in Pro:**
 
 * Per-customer usage limits (prevent abuse)
@@ -184,6 +194,12 @@ Use: User Role Targeting (include "Wholesale Customer" role) + Tiered Bulk Disco
 **"Valentine's Day promotion on specific gift items"**
 Use: Specific Products + 20% off + Schedule Feb 7 to Feb 14. Select your gift-worthy products, set the dates, and the promotion runs itself while you focus on marketing.
 
+**"20% off subscription boxes for the first 3 months"**
+Use: Subscription products + 20% percentage off + Renewal limit 3 (Pro). New subscribers get a discounted recurring price for their first 3 billing cycles, then automatically return to full price. Great for acquisition campaigns.
+
+**"Waive the sign-up fee during a launch promotion"**
+Use: Subscription products + Sign-up fee discount target + 100% percentage off (Pro). The one-time sign-up fee is removed during your campaign period while the recurring price stays unchanged. Perfect for reducing friction on new subscriptions.
+
 Want to know how discounts affect your margins? Use our free [WooCommerce Discount Calculator](https://webstepper.io/woocommerce-discount-calculator/) to calculate profit before running a campaign.
 
 = Who Is Smart Cycle Discounts For? =
@@ -216,7 +232,9 @@ Not sure if Free or Pro is right for you? Take the [Capability Score Calculator]
 
 * **Any WordPress theme** - Backend plugin that uses WooCommerce's native sale price system. Your theme's sale styling works automatically.
 * **WooCommerce 8.0+** - Built for modern WooCommerce with full HPOS (High-Performance Order Storage) compatibility
+* **Block-based cart and checkout** - Full support for WooCommerce block cart/checkout pages (WooCommerce 8.3+). Strikethrough pricing displays correctly in both classic and block-based templates.
 * **Variable products** - All product variations receive discounts automatically
+* **WooCommerce Subscriptions** - Discount campaigns work on subscription products. Recurring prices show strikethrough discounts automatically. Pro users can target sign-up fees separately and limit discounts to a set number of renewals.
 * **WooCommerce coupons** - Works independently alongside existing coupons. Customers can use both campaign discounts and coupon codes together.
 * **Large catalogs** - Optimized database queries handle thousands of products without slowing down your store
 * **Multisite compatible** - Works on WordPress multisite installations
@@ -224,6 +242,7 @@ Not sure if Free or Pro is right for you? Take the [Capability Score Calculator]
 = Technical Details For Developers =
 
 * **WooCommerce HPOS Compatible** - Tested and verified with High-Performance Order Storage
+* **WooCommerce Blocks Integration** - Full Store API extension and checkout filters support for block-based cart/checkout pages
 * **Large Catalog Ready** - Optimized queries with intelligent caching for stores with 10,000+ products
 * **Developer Friendly** - Actions and filters for custom integrations
 * **WordPress Coding Standards** - Clean, secure, well-documented code following all WordPress.org requirements
@@ -346,6 +365,14 @@ Yes. You can run unlimited campaigns simultaneously. Use the Priority field (1-5
 
 Yes. Smart Cycle Discounts is fully compatible with WooCommerce HPOS and has been tested with custom order tables. It works with both the legacy post-based storage and the new High-Performance Order Storage system.
 
+= Does it work with WooCommerce Subscriptions? =
+
+Yes. Subscription products are fully supported. On the free tier, discount campaigns apply to the recurring subscription price automatically - no special setup needed. Your subscription product pages show strikethrough pricing just like regular products (e.g., ~~$29/month~~ $23.20/month). The Pro version adds advanced subscription controls: choose whether to discount the recurring price, the sign-up fee, or both. You can also limit discounts to the first X renewal payments - for example, "20% off for the first 3 months, then full price." If WooCommerce Subscriptions is not installed, the subscription settings simply don't appear in the wizard.
+
+= Does it work with WooCommerce block-based cart and checkout? =
+
+Yes. Smart Cycle Discounts fully supports WooCommerce block cart and checkout pages (WooCommerce 8.3+). Discounted prices display correctly with strikethrough formatting in both classic templates and the new block-based cart/checkout. The plugin automatically detects which template you're using and applies the appropriate discount display logic. No configuration needed - it just works.
+
 = Can I duplicate an existing campaign? =
 
 Yes. On the Campaigns list page, hover over any campaign and click the "Duplicate" action. This creates a copy of the campaign with all settings intact, which you can then modify as needed. Great for creating seasonal promotions based on previous campaigns.
@@ -429,6 +456,16 @@ Pro users can configure combination policies for each campaign. Choose whether y
 11. Main dashboard - Performance summary with campaign cards sorted by urgency
 
 == Changelog ==
+
+= 1.6.0 =
+* New: WooCommerce Subscriptions support - discount campaigns now work on subscription products automatically.
+* New: Recurring subscription prices show strikethrough discounts on product pages, shop pages, and cart.
+* New: Subscription and variable-subscription product types recognized in campaign product conditions.
+* New (Pro): Subscription discount target selector - choose to discount recurring price, sign-up fee, or both.
+* New (Pro): Renewal limit control - limit discounts to the first X renewal payments, then revert to full price.
+* New (Pro): Automatic renewal tracking per subscription with campaign linkage at checkout.
+* New (Pro): Subscription Discount Settings card in wizard discounts step with contextual help.
+* Improvement: Graceful degradation when WooCommerce Subscriptions is deactivated - no errors, no UI clutter.
 
 = 1.5.70 =
 * New: WooCommerce block-based cart and checkout support - strikethrough pricing now displays correctly in block cart/checkout pages alongside classic templates.
@@ -667,6 +704,9 @@ Pro users can configure combination policies for each campaign. Choose whether y
 * WordPress 6.4+ and WooCommerce 8.0+ support
 
 == Upgrade Notice ==
+
+= 1.6.0 =
+WooCommerce Subscriptions support. Discount campaigns now apply to subscription recurring prices automatically. Pro users get sign-up fee targeting and renewal limits. Recommended update for stores selling subscriptions.
 
 = 1.5.70 =
 Adds full support for WooCommerce block-based cart and checkout. Discounted pricing now displays correctly with strikethrough in both classic and block cart/checkout pages. Recommended update for stores using WooCommerce 8.3+.

@@ -562,6 +562,13 @@ class WSSCD_WC_Discount_Query_Service {
 			$context // Override with passed context (e.g., cart quantity)
 		);
 
+		// Add subscription context if product is a subscription type
+		if ( WSSCD_WC_Subscription_Handler::is_available() && WSSCD_WC_Subscription_Handler::is_subscription( $product ) ) {
+			$discount_context['is_subscription'] = true;
+			$discount_context['sign_up_fee']     = WSSCD_WC_Subscription_Handler::get_sign_up_fee( $product );
+			$discount_context['billing_period']  = get_post_meta( $product_id, '_subscription_period', true );
+		}
+
 		return $discount_context;
 	}
 
@@ -624,6 +631,21 @@ class WSSCD_WC_Discount_Query_Service {
 	 * @return   array                               Formatted discount data.
 	 */
 	private function build_discount_data( array $discount_config, WSSCD_Campaign $campaign, object $result ): array {
+		$campaign_data = array(
+			'max_uses_per_customer' => $campaign->get_setting( 'usage_limit', 0 ),
+		);
+
+		// Include subscription settings from campaign's discount rules.
+		// Read directly from campaign to ensure availability for all discount types
+		// (discount_config only merges rules for complex types like tiered/bogo).
+		$discount_rules = $campaign->get_discount_rules();
+		if ( isset( $discount_rules['subscription_discount_target'] ) ) {
+			$campaign_data['subscription_discount_target'] = $discount_rules['subscription_discount_target'];
+		}
+		if ( isset( $discount_rules['subscription_renewal_limit'] ) ) {
+			$campaign_data['subscription_renewal_limit'] = $discount_rules['subscription_renewal_limit'];
+		}
+
 		$discount_data = array(
 			'type'             => $discount_config['type'] ?? 'percentage',
 			'value'            => $discount_config['value'] ?? 0,
@@ -631,9 +653,7 @@ class WSSCD_WC_Discount_Query_Service {
 			'discount_amount'  => $result->get_discount_amount(),
 			'discounted_price' => $result->get_discounted_price(),
 			'percentage'       => $result->get_discount_percentage(),
-			'campaign_data'    => array(
-				'max_uses_per_customer' => $campaign->get_setting( 'usage_limit', 0 ),
-			),
+			'campaign_data'    => $campaign_data,
 		);
 
 		if ( method_exists( $result, 'get_metadata' ) ) {

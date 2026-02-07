@@ -177,6 +177,18 @@ class WSSCD_WooCommerce_Integration implements WSSCD_Ecommerce_Integration {
 	private ?WSSCD_WC_Blocks_Integration $blocks_integration = null;
 
 	/**
+	 * Subscription handler instance.
+	 *
+	 * Handles WooCommerce Subscriptions integration for recurring
+	 * price discounts, sign-up fee discounts, and renewal tracking.
+	 *
+	 * @since    1.6.0
+	 * @access   private
+	 * @var      WSSCD_WC_Subscription_Handler|null    $subscription_handler    Subscription handler.
+	 */
+	private ?WSSCD_WC_Subscription_Handler $subscription_handler = null;
+
+	/**
 	 * WooCommerce compatibility status.
 	 *
 	 * @since    1.0.0
@@ -308,10 +320,20 @@ class WSSCD_WooCommerce_Integration implements WSSCD_Ecommerce_Integration {
 				$this->discount_map_service
 			);
 
+			// Initialize subscription handler if WooCommerce Subscriptions is active
+			// Must be created before price_integration to pass as dependency
+			if ( WSSCD_WC_Subscription_Handler::is_available() ) {
+				$this->subscription_handler = new WSSCD_WC_Subscription_Handler(
+					$this->logger,
+					$this->campaign_manager
+				);
+			}
+
 			$this->price_integration = new WSSCD_WC_Price_Integration(
 				$this->discount_query,
 				$this->customer_usage_manager,
-				$this->logger
+				$this->logger,
+				$this->subscription_handler
 			);
 
 			$this->display_integration = new WSSCD_WC_Display_Integration(
@@ -431,6 +453,11 @@ class WSSCD_WooCommerce_Integration implements WSSCD_Ecommerce_Integration {
 		// Blocks integration - runs on frontend only
 		if ( ! is_admin() && $this->blocks_integration ) {
 			$this->blocks_integration->register_hooks();
+		}
+
+		// Subscription handler - runs on frontend and AJAX
+		if ( $this->subscription_handler ) {
+			$this->subscription_handler->register_hooks();
 		}
 
 		// WooCommerce compatibility hooks
